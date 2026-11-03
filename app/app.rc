@@ -1,0 +1,148 @@
+#pragma code_page(65001)
+
+#include "windows.h"
+#include "commctrl.h"
+#include "resource.h"
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+// Lowest ID first so the application icon stays consistent on all systems.
+IDI_APP_ICON            ICON    "icon.ico"
+IDI_ICON_STATUS_VIET    ICON    "StatusViet.ico"
+IDI_ICON_STATUS_ENG     ICON    "StatusEng.ico"
+IDI_ICON_STATUS_VIET_10 ICON    "StatusViet10.ico"
+IDI_ICON_STATUS_ENG_10  ICON    "StatusEng10.ico"
+
+1 RT_MANIFEST "app.manifest"
+
+// Vertical layout below is mirrored by ADVANCED_BLOCK_HEIGHT in MainControlDialog.cpp:
+// the footer sits at y=284 collapsed and moves down when "Nâng cao" opens.
+IDD_DIALOG_MAIN DIALOGEX 0, 0, 297, 309
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SHELLFONT | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    LTEXT           "Theo ứng dụng:",IDC_STATIC,14,10,60,8
+    PUSHBUTTON      "Quản lý...",IDC_BUTTON_APP_RULES,80,6,110,15
+
+    GROUPBOX        "Bộ gõ",IDC_STATIC,7,28,283,112
+    LTEXT           "Kiểu gõ:",IDC_STATIC,14,42,60,8
+    COMBOBOX        IDC_COMBO_INPUT_TYPE,80,39,80,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Chế độ mặc định:",IDC_STATIC,14,58,64,8
+    CONTROL         "Tiếng Việt",IDC_RADIO_METHOD_VIETNAMESE,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,80,57,55,10
+    CONTROL         "Tiếng Anh",IDC_RADIO_METHOD_ENGLISH,"Button",BS_AUTORADIOBUTTON,140,57,55,10
+    LTEXT           "Áp dụng cho mọi ứng dụng chưa có luật.",IDC_STATIC,80,67,200,8,WS_GROUP
+    LTEXT           "Phím chuyển:",IDC_STATIC,14,80,60,8
+    CONTROL         "Ctrl",IDC_CHECK_SWITCH_KEY_CTRL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,80,79,27,10
+    CONTROL         "Alt",IDC_CHECK_SWITCH_KEY_ALT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,110,79,25,10
+    CONTROL         "Win",IDC_CHECK_SWITCH_KEY_WIN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,138,79,28,10
+    CONTROL         "Shift",IDC_CHECK_SWITCH_KEY_SHIFT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,169,79,31,10
+    LTEXT           "+ phím",IDC_STATIC,203,80,24,8
+    EDITTEXT        IDC_SWITCH_KEY_KEY,229,77,22,12,ES_CENTER | ES_AUTOHSCROLL
+    CONTROL         "Bíp",IDC_CHECK_SWITCH_KEY_BEEP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,257,79,28,10
+    LTEXT           "Để trống ô phím nếu chỉ dùng tổ hợp Ctrl, Alt, Win, Shift.",IDC_STATIC,80,91,200,8
+    CONTROL         "Đặt dấu kiểu mới (oà, uý thay vì òa, úy)",IDC_CHECK_MODERN_ORTHORGRAPHY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,102,266,10
+    CONTROL         "Viết hoa chữ cái đầu câu",IDC_CHECK_CAPS_FIRST_CHAR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,114,266,10
+    CONTROL         "Gõ nhanh",IDC_CHECK_QUICK_TYPING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,126,100,10
+    PUSHBUTTON      "Tùy chỉnh...",IDC_BUTTON_QUICK_TYPING,205,124,78,13
+
+    GROUPBOX        "Chính tả",IDC_STATIC,7,144,283,62
+    CONTROL         "Kiểm tra chính tả",IDC_CHECK_SPELLING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,156,266,10
+    CONTROL         "Tự khôi phục phím khi từ sai",IDC_CHECK_RESTORE_IF_WRONG_SPELLING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,28,168,252,10
+    CONTROL         "Cho phép z, w, j, f làm phụ âm đầu",IDC_CHECK_ALLOW_ZJWF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,28,180,252,10
+    CONTROL         "Tạm tắt chính tả khi giữ phím Ctrl",IDC_CHECK_TEMP_OFF_SPELLING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,28,192,252,10
+
+    GROUPBOX        "Hệ thống",IDC_STATIC,7,210,283,50
+    CONTROL         "Khởi động cùng Windows",IDC_CHECK_RUN_WITH_WINDOWS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,222,266,10
+    CONTROL         "Chạy với quyền Admin (để gõ được trong ứng dụng chạy quyền cao)",IDC_CHECK_RUN_AS_ADMIN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,234,266,10
+    CONTROL         "Biểu tượng khay kiểu Windows 10",IDC_CHECK_MODERN_ICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,246,266,10
+
+    PUSHBUTTON      "Nâng cao",IDC_BUTTON_ADVANCED,7,264,70,14
+    CONTROL         "Sửa lỗi trùng chữ ở thanh địa chỉ và Excel",IDC_CHECK_FIX_RECOMMEND_BROWSER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,282,266,10
+    CONTROL         "Dùng cách riêng cho Chrome, Edge, Brave",IDC_CHECK_FIX_CHROMIUM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,28,294,252,10
+    CONTROL         "Gửi chữ bằng Clipboard (chậm hơn, dùng khi cách thường lỗi)",IDC_CHECK_USE_CLIPBOARD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,306,266,10
+
+    PUSHBUTTON      "Cài đặt gốc...",ID_BTN_DEFAULT,7,284,70,18
+    DEFPUSHBUTTON   "Đóng",IDBUTTON_OK,220,284,70,18
+END
+
+IDD_DIALOG_APP_RULES DIALOGEX 0, 0, 260, 190
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SHELLFONT | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Cấu hình theo ứng dụng"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    LTEXT           "Ứng dụng có trong danh sách luôn gõ theo chế độ đã chọn. Ứng dụng khác dùng chế độ gõ chung.",IDC_STATIC,7,7,246,18
+    CONTROL         "",IDC_LIST_APP_RULES,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,7,28,246,118
+    PUSHBUTTON      "+ Thêm ứng dụng...",IDC_BUTTON_RULE_ADD,7,152,80,14
+    PUSHBUTTON      "Đổi chế độ",IDC_BUTTON_RULE_TOGGLE,92,152,60,14
+    PUSHBUTTON      "Xóa",IDC_BUTTON_RULE_DELETE,157,152,40,14
+    DEFPUSHBUTTON   "Đóng",IDOK,203,169,50,14
+END
+
+IDD_DIALOG_QUICK_TYPING DIALOGEX 0, 0, 280, 215
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SHELLFONT | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Gõ nhanh"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    LTEXT           "Gõ chuỗi ở cột Gõ rồi bấm Space, Enter hoặc dấu câu, CPKey đổi thành nội dung ở cột Ra. Phân biệt chữ hoa và chữ thường.",IDC_STATIC,7,7,266,18
+    CONTROL         "",IDC_LIST_QUICK_TYPING,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,7,28,266,86
+    LTEXT           "Chưa có quy tắc nào. Nhập ở dưới rồi bấm Thêm.",IDC_STATIC_QUICK_EMPTY,7,120,185,16
+    PUSHBUTTON      "Thêm ví dụ: vn",IDC_BUTTON_QUICK_EXAMPLE,196,118,77,14
+    LTEXT           "Gõ",IDC_STATIC,7,140,60,8
+    EDITTEXT        IDC_EDIT_QUICK_TRIGGER,7,149,100,12,ES_AUTOHSCROLL
+    LTEXT           "Ra",IDC_STATIC,115,140,60,8
+    EDITTEXT        IDC_EDIT_QUICK_OUTPUT,115,149,158,12,ES_AUTOHSCROLL
+    LTEXT           "",IDC_STATIC_QUICK_TRIGGER_MSG,7,164,104,26
+    LTEXT           "",IDC_STATIC_QUICK_OUTPUT_MSG,115,164,158,26
+    DEFPUSHBUTTON   "Thêm",IDC_BUTTON_QUICK_SET,7,194,50,14
+    PUSHBUTTON      "Xóa",IDC_BUTTON_QUICK_DELETE,62,194,40,14
+    PUSHBUTTON      "Dòng mới",IDC_BUTTON_QUICK_NEW,107,194,50,14
+    PUSHBUTTON      "Đóng",IDCANCEL,223,194,50,14
+END
+
+IDD_DIALOG_PICK_APP DIALOGEX 0, 0, 260, 205
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SHELLFONT | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Chọn ứng dụng"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    LTEXT           "Chọn một ứng dụng đang chạy, hoặc duyệt file .exe:",IDC_STATIC,7,7,246,10
+    CONTROL         "",IDC_LIST_RUNNING_APPS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,7,20,246,110
+    PUSHBUTTON      "Duyệt file .exe...",IDC_BUTTON_BROWSE,7,134,75,14
+    GROUPBOX        "Chế độ gõ",IDC_STATIC,7,154,246,26
+    CONTROL         "Luôn tiếng Anh",IDC_RADIO_RULE_ENGLISH,"Button",BS_AUTORADIOBUTTON | WS_GROUP,14,165,100,10
+    CONTROL         "Luôn tiếng Việt",IDC_RADIO_RULE_VIETNAMESE,"Button",BS_AUTORADIOBUTTON,130,165,100,10
+    DEFPUSHBUTTON   "Thêm",IDOK,148,185,50,14
+    PUSHBUTTON      "Hủy",IDCANCEL,203,185,50,14
+END
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION APP_VERSION_NUMBERS
+ PRODUCTVERSION APP_VERSION_NUMBERS
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "FileDescription", APP_NAME_TEXT " - Bộ gõ Tiếng Việt"
+            VALUE "FileVersion", APP_VERSION_TEXT
+            VALUE "InternalName", APP_NAME_TEXT
+            VALUE "LegalCopyright", "GPL-3.0. Dựa trên OpenKey của Mai Vũ Tuyên"
+            VALUE "ProductName", APP_NAME_TEXT
+            VALUE "ProductVersion", APP_VERSION_TEXT
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+STRINGTABLE
+BEGIN
+    IDS_TRAY_TITLE          "Bấm vào đây để bật gõ Tiếng Việt"
+    IDS_TRAY_TITLE_2        "Bấm vào đây để tắt gõ Tiếng Việt"
+END
