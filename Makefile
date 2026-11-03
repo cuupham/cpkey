@@ -41,6 +41,9 @@ $(TEST_TARGET): $(TEST_OBJ) $(TEST_DEPS)
 test: $(TEST_TARGET)
 	$(TEST_TARGET)
 
+test-update-snapshot: $(TEST_TARGET)
+	$(TEST_TARGET) --update-snapshot
+
 # Needs clang-format on PATH. resource.h belongs to the resource editor, so it is left alone.
 FORMAT_FILES := $(SRC) $(TEST_SRC) $(filter-out app/resource.h,$(wildcard app/*.h engine/*.h engine/platforms/*.h tests/*.h))
 
@@ -54,4 +57,4 @@ clean:
 	rm -rf $(OUT)
 
 -include $(OBJ:.o=.d) $(TEST_OBJ:.o=.d)
-.PHONY: all clean test format format-check
+.PHONY: all clean test test-update-snapshot format format-check

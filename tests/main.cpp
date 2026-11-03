@@ -1,8 +1,10 @@
 #include "Suites.h"
 #include "Test.h"
 
-int main() {
-    runEngineTests();
+#define UPDATE_SNAPSHOT_FLAG "--update-snapshot"
+
+int main(int argc, char** argv) {
+    runEngineTests(argc > 1 && std::string(argv[1]) == UPDATE_SNAPSHOT_FLAG);
     runTextEditTests();
     runQuickTypingTests();
     runAppRulesTests();
