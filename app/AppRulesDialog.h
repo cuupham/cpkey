@@ -18,5 +18,5 @@ class AppRulesDialog : public BaseDialog {
 
   public:
 	AppRulesDialog(const HINSTANCE& instance, const int& resourceId);
-	void fillData() override;
+	void refresh() override;
 };

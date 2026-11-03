@@ -21,8 +21,8 @@
 #define IDC_STATIC                      -1
 
 // main dialog
-#define IDBUTTON_OK                     1000
-#define ID_BTN_DEFAULT                  1002
+#define IDC_BUTTON_OK                     1000
+#define IDC_BUTTON_DEFAULT                  1002
 #define IDC_BUTTON_APP_RULES            1003
 #define IDC_BUTTON_ADVANCED             1006
 #define IDC_COMBO_INPUT_TYPE            1010
@@ -30,11 +30,11 @@
 #define IDC_CHECK_SWITCH_KEY_ALT        1012
 #define IDC_CHECK_SWITCH_KEY_WIN        1013
 #define IDC_CHECK_SWITCH_KEY_SHIFT      1014
-#define IDC_SWITCH_KEY_KEY              1015
+#define IDC_EDIT_SWITCH_KEY              1015
 #define IDC_CHECK_SWITCH_KEY_BEEP       1016
 #define IDC_RADIO_METHOD_VIETNAMESE     1017
 #define IDC_RADIO_METHOD_ENGLISH        1018
-#define IDC_CHECK_MODERN_ORTHORGRAPHY   1020
+#define IDC_CHECK_MODERN_ORTHOGRAPHY   1020
 #define IDC_CHECK_FIX_RECOMMEND_BROWSER 1021
 #define IDC_CHECK_CAPS_FIRST_CHAR       1022
 #define IDC_CHECK_RUN_WITH_WINDOWS      1024
@@ -44,8 +44,8 @@
 #define IDC_CHECK_ALLOW_ZJWF            1029
 #define IDC_CHECK_TEMP_OFF_SPELLING     1030
 #define IDC_CHECK_FIX_CHROMIUM          1031
-#define IDC_CHECK_USE_CLIPBOARD         1032
-#define IDC_CHECK_MODERN_ICON           1033
+#define IDC_CHECK_SEND_BY_CLIPBOARD         1032
+#define IDC_CHECK_GRAY_ICON           1033
 #define IDC_BUTTON_QUICK_TYPING         1034
 #define IDC_CHECK_QUICK_TYPING          1035
 

@@ -1,11 +1,12 @@
 #pragma once
+#include "../engine/Engine.h"
 
-#define DEFAULT_SWITCH_STATUS 0xFE0009FE // Ctrl+Shift, no extra key
+#define DEFAULT_SWITCH_STATUS (EMPTY_HOTKEY | SWITCH_KEY_CTRL_MASK | SWITCH_KEY_SHIFT_MASK) // Ctrl+Shift, no extra key
 
 // Every user-facing setting persisted in CPKey.ini: X(name, default).
 // This list is the single source for declaring, defining, loading and resetting them.
 #define PERSISTED_SETTINGS(X)                  \
-	X(vInputType, 0)                           \
+	X(vInputType, vTelex)                      \
 	X(vCheckSpelling, 1)                       \
 	X(vUseModernOrthography, 0)                \
 	X(vSwitchKeyStatus, DEFAULT_SWITCH_STATUS) \

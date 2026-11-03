@@ -12,7 +12,7 @@ class MainControlDialog : public BaseDialog {
 	void setAdvancedOpen(bool open);
 	void updateRulesButton();
 	void onCheckboxClicked(int controlId);
-	void onCharacter(const UINT16& keyCode);
+	void onSwitchKeyPressed(const UINT16& keyCode);
 	void setSwitchKeyText(const UINT16& keyCode);
 	void requestRestartAsAdmin();
 
@@ -21,5 +21,5 @@ class MainControlDialog : public BaseDialog {
 
   public:
 	MainControlDialog(const HINSTANCE& instance, const int& resourceId);
-	void fillData() override;
+	void refresh() override;
 };

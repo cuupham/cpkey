@@ -1,5 +1,5 @@
 #pragma once
-#include "stdafx.h"
+#include "common.h"
 
 // User-defined abbreviations: typing a word that matches a trigger exactly (case-sensitive)
 // and then a word break replaces it with the output.

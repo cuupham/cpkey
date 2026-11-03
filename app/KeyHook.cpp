@@ -1,12 +1,11 @@
-#include "stdafx.h"
-#include "AppDelegate.h"
+#include "common.h"
+#include "App.h"
 #include "AppRules.h"
 #include "QuickTyping.h"
 #include "Settings.h"
 
 #define IMC_GETOPENSTATUS    0x0005
 #define IME_QUERY_TIMEOUT_MS 50
-#define EMPTY_HOTKEY         0xFE0000FE
 
 // Modifier state bits. Their numeric order matters: hotkey detection compares whole values.
 #define MASK_SHIFT   0x01
@@ -18,9 +17,9 @@
 #define MASK_SCROLL  0x40
 
 unsigned short lastKeyCode = 0;
-int vLanguage = 1;
+int vLanguage = LANGUAGE_VIETNAMESE;
 
-static const vector<string> chromiumBrowsers = { "chrome.exe", "brave.exe", "msedge.exe" };
+static const vector<string> CHROMIUM_BROWSERS = { "chrome.exe", "brave.exe", "msedge.exe" };
 
 static HHOOK keyboardHook;
 static HHOOK mouseHook;
@@ -33,7 +32,7 @@ static bool justUsedHotKey = false;
 static Uint16 keyCode = 0;
 
 // The language the user picked outside any app rule; restored when leaving a ruled app.
-static int baseLanguage = 1;
+static int baseLanguage = LANGUAGE_VIETNAMESE;
 static bool ruleActive = false;
 static string ruleExe;
 
@@ -42,7 +41,7 @@ static INPUT keyEvents[2];
 
 static LRESULT CALLBACK keyboardHookProcess(int nCode, WPARAM wParam, LPARAM lParam);
 static LRESULT CALLBACK mouseHookProcess(int nCode, WPARAM wParam, LPARAM lParam);
-static VOID CALLBACK foregroundEventProcess(HWINEVENTHOOK hook, DWORD event, HWND hwnd, LONG idObject, LONG idChild, DWORD eventThread, DWORD eventTime);
+static VOID CALLBACK foregroundEventProcess(HWINEVENTHOOK, DWORD, HWND, LONG, LONG, DWORD, DWORD);
 
 /*---------------------- sending input ----------------------*/
 
@@ -109,7 +108,7 @@ static void sendBackspaces(int count) {
 	}
 }
 
-// A zero-width placeholder that stops browser address bars from auto-completing the word being fixed.
+// A narrow no-break space that stops browser address bars from auto-completing the word being fixed.
 static void sendEmptyCharacter() {
 	sendUnicode(0x202F);
 }
@@ -139,7 +138,7 @@ static void sendByClipboard() {
 	}
 
 	text.push_back(0);
-	SystemHelper::setClipboardText(text.data(), (int)text.size(), CF_UNICODETEXT);
+	Os::setClipboardText(text.data(), (int)text.size(), CF_UNICODETEXT);
 	sendCombo(KEY_LEFT_SHIFT, VK_INSERT, 0, KEYEVENTF_EXTENDEDKEY);
 	if (sendControlKey) {
 		sendKeyCode(keyCode);
@@ -147,7 +146,7 @@ static void sendByClipboard() {
 }
 
 // Erases the abbreviation just typed, types its replacement, then passes on the key that ended the word.
-static void handleMacro() {
+static void applyQuickTyping() {
 	if (vFixRecommendBrowser) {
 		sendEmptyCharacter();
 		engineState->backspaceCount++;
@@ -162,7 +161,7 @@ static void handleMacro() {
 /*---------------------- language and app rules ----------------------*/
 
 void applyAppRule() {
-	const string& exe = SystemHelper::getFrontMostAppExecuteName();
+	const string& exe = Os::getForegroundExecutableName();
 	if (exe == ruleExe)
 		return;
 	ruleExe = exe;
@@ -170,7 +169,7 @@ void applyAppRule() {
 	int rule = getAppRule(exe);
 	ruleActive = rule != RULE_NONE;
 	vLanguage = ruleActive ? rule : baseLanguage;
-	AppDelegate::getInstance()->refreshUi();
+	App::getInstance()->refreshUi();
 }
 
 void reapplyAppRule() {
@@ -188,11 +187,11 @@ int getBaseLanguage() {
 
 void setBaseLanguage(int language) {
 	baseLanguage = language;
-	SystemHelper::setIntSetting(_T("vLanguage"), language);
+	Os::setIntSetting(_T("vLanguage"), language);
 	if (!ruleActive) {
 		vLanguage = language;
 	}
-	AppDelegate::getInstance()->refreshUi();
+	App::getInstance()->refreshUi();
 	startNewSession();
 }
 
@@ -200,7 +199,7 @@ bool toggleLanguage() {
 	if (ruleActive) {
 		return false;
 	}
-	setBaseLanguage(vLanguage ? 0 : 1);
+	setBaseLanguage(vLanguage ? LANGUAGE_ENGLISH : LANGUAGE_VIETNAMESE);
 	return true;
 }
 
@@ -221,10 +220,10 @@ static Uint32 readModifierState() {
 void keyHookInit() {
 #define LOAD_SETTING(name, value) APP_GET_DATA(name, value);
 	PERSISTED_SETTINGS(LOAD_SETTING)
-	APP_GET_DATA(vLanguage, 1);
+	APP_GET_DATA(vLanguage, LANGUAGE_VIETNAMESE);
 	baseLanguage = vLanguage;
 	if (vRunWithWindows) {
-		SystemHelper::registerRunOnStartup(true); // refreshes the path if the exe was moved
+		Os::registerRunOnStartup(true); // refreshes the path if the exe was moved
 	}
 
 	engineState = (vKeyHookState*)vKeyInit();
@@ -277,13 +276,13 @@ static Uint8 capsStatus() {
 }
 
 static bool matchesHotKey(int hotKeyData, bool checkKeyCode) {
-	if ((hotKeyData & (~0x8000)) == EMPTY_HOTKEY)
+	if ((hotKeyData & ~SWITCH_KEY_BEEP_MASK) == EMPTY_HOTKEY)
 		return false;
 	if (HAS_CONTROL(hotKeyData) ^ GET_BOOL(lastModifiers & MASK_CONTROL))
 		return false;
-	if (HAS_OPTION(hotKeyData) ^ GET_BOOL(lastModifiers & MASK_ALT))
+	if (HAS_ALT(hotKeyData) ^ GET_BOOL(lastModifiers & MASK_ALT))
 		return false;
-	if (HAS_COMMAND(hotKeyData) ^ GET_BOOL(lastModifiers & MASK_WIN))
+	if (HAS_WIN(hotKeyData) ^ GET_BOOL(lastModifiers & MASK_WIN))
 		return false;
 	if (HAS_SHIFT(hotKeyData) ^ GET_BOOL(lastModifiers & MASK_SHIFT))
 		return false;
@@ -291,7 +290,7 @@ static bool matchesHotKey(int hotKeyData, bool checkKeyCode) {
 }
 
 static bool matchesSwitchKey() {
-	return matchesHotKey(vSwitchKeyStatus, GET_SWITCH_KEY(vSwitchKeyStatus) != 0xFE);
+	return matchesHotKey(vSwitchKeyStatus, GET_SWITCH_KEY(vSwitchKeyStatus) != EMPTY_SWITCH_KEY);
 }
 
 static void switchLanguage() {
@@ -303,7 +302,9 @@ static void switchLanguage() {
 static bool isImeOpen() {
 	HWND ime = ImmGetDefaultIMEWnd(GetForegroundWindow());
 	DWORD_PTR open = 0;
-	return ime && SendMessageTimeout(ime, WM_IME_CONTROL, IMC_GETOPENSTATUS, 0, SMTO_ABORTIFHUNG | SMTO_BLOCK, IME_QUERY_TIMEOUT_MS, &open) && open;
+	return ime &&
+	       SendMessageTimeout(ime, WM_IME_CONTROL, IMC_GETOPENSTATUS, 0, SMTO_ABORTIFHUNG | SMTO_BLOCK, IME_QUERY_TIMEOUT_MS, &open) &&
+	       open;
 }
 
 // Without the Vietnamese engine only quick typing is active.
@@ -311,27 +312,27 @@ static bool handleEnglishKey(bool isKeyDown) {
 	if (!vUseMacro || !isKeyDown)
 		return false;
 	vEnglishMode(vKeyEventState::KeyDown, keyCode, (modifiers & MASK_SHIFT) || (modifiers & MASK_CAPITAL), hasControlModifier());
-	if (engineState->code != vReplaceMaro)
+	if (engineState->code != vReplaceMacro)
 		return false;
-	handleMacro();
+	applyQuickTyping();
 	return true;
 }
 
 // Sends the engine's result to the app. Returns true when the key was consumed.
 static bool applyEngineResult() {
 	Byte code = engineState->code;
-	if (code == vReplaceMaro) {
-		handleMacro();
+	if (code == vReplaceMacro) {
+		applyQuickTyping();
 		return true;
 	}
 	if (code != vWillProcess && code != vRestore && code != vRestoreAndStartNewSession) {
 		return false;
 	}
 
-	//fix autocomplete
+	// Address bars and Excel auto-complete the word and duplicate letters after the backspaces.
 	if (vFixRecommendBrowser && engineState->extCode != 4) {
 		if (vFixChromiumBrowser &&
-		    std::find(chromiumBrowsers.begin(), chromiumBrowsers.end(), SystemHelper::getLastAppExecuteName()) != chromiumBrowsers.end()) {
+		    std::find(CHROMIUM_BROWSERS.begin(), CHROMIUM_BROWSERS.end(), Os::getLastExecutableName()) != CHROMIUM_BROWSERS.end()) {
 			sendCombo(KEY_LEFT_SHIFT, KEY_LEFT, 0, KEYEVENTF_EXTENDEDKEY);
 			if (engineState->backspaceCount == 1)
 				engineState->backspaceCount--;
@@ -388,7 +389,6 @@ static LRESULT CALLBACK keyboardHookProcess(int nCode, WPARAM wParam, LPARAM lPa
 		keyCode = (Uint16)input->vkCode;
 	}
 
-	//switch language shortcut
 	if (isKeyDown && !isModifierKey && keyCode != 0) {
 		if (GET_SWITCH_KEY(vSwitchKeyStatus) != keyCode) {
 			lastModifiers = 0;
@@ -407,7 +407,6 @@ static LRESULT CALLBACK keyboardHookProcess(int nCode, WPARAM wParam, LPARAM lPa
 				switchLanguage();
 				justUsedHotKey = true;
 			}
-			//check temporarily turn off spell checking
 			if (vTempOffSpelling && !justUsedHotKey && (lastModifiers & MASK_CONTROL)) {
 				vTempOffSpellChecking();
 			}
@@ -418,7 +417,7 @@ static LRESULT CALLBACK keyboardHookProcess(int nCode, WPARAM wParam, LPARAM lPa
 		return passOn();
 	}
 
-	if (vLanguage == 0) {
+	if (vLanguage == LANGUAGE_ENGLISH) {
 		return handleEnglishKey(isKeyDown) ? -1 : passOn();
 	}
 	if (!isKeyDown) {
@@ -449,7 +448,7 @@ static LRESULT CALLBACK mouseHookProcess(int nCode, WPARAM wParam, LPARAM lParam
 	return CallNextHookEx(mouseHook, nCode, wParam, lParam);
 }
 
-static VOID CALLBACK foregroundEventProcess(HWINEVENTHOOK hook, DWORD event, HWND hwnd, LONG idObject, LONG idChild, DWORD eventThread, DWORD eventTime) {
+static VOID CALLBACK foregroundEventProcess(HWINEVENTHOOK, DWORD, HWND, LONG, LONG, DWORD, DWORD) {
 	vTempOffEngine(false);
 	startNewSession();
 	applyAppRule();

@@ -5,7 +5,12 @@
 // Last key seen by the message loop; the control panel uses it to capture the language switch key.
 extern unsigned short lastKeyCode;
 
-// The language the hook is typing in right now (1 Vietnamese, 0 English). An app rule can override it.
+enum Language {
+	LANGUAGE_ENGLISH = 0,
+	LANGUAGE_VIETNAMESE = 1,
+};
+
+// The language the hook is typing in right now. An app rule can override it.
 extern int vLanguage;
 
 void keyHookInit();

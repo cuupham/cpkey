@@ -1,5 +1,5 @@
 #pragma once
-#include "stdafx.h"
+#include "common.h"
 
 class BaseDialog {
   protected:
@@ -16,7 +16,7 @@ class BaseDialog {
 	virtual ~BaseDialog() {}
 	void show();
 	void bringOnTop();
-	virtual void fillData() = 0;
+	virtual void refresh() = 0;
 
 	HWND getHwnd();
 	void closeDialog();

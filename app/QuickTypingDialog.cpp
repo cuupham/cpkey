@@ -2,23 +2,23 @@
 #include "QuickTyping.h"
 #include "ListViewHelper.h"
 
-#define MESSAGE_BUFFER 256
+#define TEXT_BUFFER 256
 
 static HWND listOf(HWND hDlg) {
 	return GetDlgItem(hDlg, IDC_LIST_QUICK_TYPING);
 }
 
 static wstring editText(HWND hDlg, int controlId) {
-	TCHAR text[MESSAGE_BUFFER] = { 0 };
-	GetDlgItemText(hDlg, controlId, text, MESSAGE_BUFFER);
+	TCHAR text[TEXT_BUFFER] = { 0 };
+	GetDlgItemText(hDlg, controlId, text, TEXT_BUFFER);
 	return wstring(text);
 }
 
 static int rowOf(HWND hDlg, const wstring& trigger) {
 	HWND list = listOf(hDlg);
 	for (int row = 0; row < ListView_GetItemCount(list); row++) {
-		TCHAR text[MESSAGE_BUFFER] = { 0 };
-		ListView_GetItemText(list, row, 0, text, MESSAGE_BUFFER);
+		TCHAR text[TEXT_BUFFER] = { 0 };
+		ListView_GetItemText(list, row, 0, text, TEXT_BUFFER);
 		if (trigger == text) return row;
 	}
 	return -1;
@@ -28,8 +28,8 @@ static wstring selectedTrigger(HWND hDlg) {
 	HWND list = listOf(hDlg);
 	int row = ListView_GetNextItem(list, -1, LVNI_SELECTED);
 	if (row < 0) return L"";
-	TCHAR text[MESSAGE_BUFFER] = { 0 };
-	ListView_GetItemText(list, row, 0, text, MESSAGE_BUFFER);
+	TCHAR text[TEXT_BUFFER] = { 0 };
+	ListView_GetItemText(list, row, 0, text, TEXT_BUFFER);
 	return wstring(text);
 }
 
@@ -51,7 +51,7 @@ static void showMessages(HWND hDlg, const wstring& triggerMessage, const wstring
 static wstring triggerMessage(HWND hDlg) {
 	wstring trigger = editText(hDlg, IDC_EDIT_QUICK_TRIGGER);
 	wstring error = checkQuickTrigger(trigger);
-	if (error.empty() && hasQuickTyping(trigger)) return L"Đã có quy tắc này. Bấm Sửa để đổi nội dung.";
+	if (error.empty() && hasQuickTyping(trigger)) return L"Đã có. Bấm Sửa để đổi nội dung.";
 	return error;
 }
 
@@ -163,9 +163,9 @@ static INT_PTR CALLBACK quickTypingProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
 			if (header->idFrom != IDC_LIST_QUICK_TYPING) break;
 			if (header->code == LVN_ITEMCHANGED && (((LPNMLISTVIEW)lParam)->uNewState & LVIS_SELECTED)) {
 				int row = ((LPNMLISTVIEW)lParam)->iItem;
-				TCHAR trigger[MESSAGE_BUFFER] = { 0 }, output[MESSAGE_BUFFER] = { 0 };
-				ListView_GetItemText(listOf(hDlg), row, 0, trigger, MESSAGE_BUFFER);
-				ListView_GetItemText(listOf(hDlg), row, 1, output, MESSAGE_BUFFER);
+				TCHAR trigger[TEXT_BUFFER] = { 0 }, output[TEXT_BUFFER] = { 0 };
+				ListView_GetItemText(listOf(hDlg), row, 0, trigger, TEXT_BUFFER);
+				ListView_GetItemText(listOf(hDlg), row, 1, output, TEXT_BUFFER);
 				SetDlgItemText(hDlg, IDC_EDIT_QUICK_TRIGGER, trigger);
 				SetDlgItemText(hDlg, IDC_EDIT_QUICK_OUTPUT, output);
 				showMessages(hDlg, L"", L"");

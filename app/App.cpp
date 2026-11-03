@@ -1,28 +1,28 @@
-#include "AppDelegate.h"
+#include "App.h"
 #include "Settings.h"
 
-static AppDelegate* _instance;
+static App* current;
 
-bool AppDelegate::isDialogMsg(MSG& msg) const {
+bool App::isDialogMsg(MSG& msg) const {
 	return (mainDialog != NULL && IsDialogMessage(mainDialog->getHwnd(), &msg)) ||
 	       (rulesDialog != NULL && IsDialogMessage(rulesDialog->getHwnd(), &msg));
 }
 
-AppDelegate::AppDelegate() {
-	_instance = this;
+App::App() {
+	current = this;
 }
 
-AppDelegate* AppDelegate::getInstance() {
-	return _instance;
+App* App::getInstance() {
+	return current;
 }
 
-int AppDelegate::run(HINSTANCE instance) {
+int App::run(HINSTANCE instance) {
 	hInstance = instance;
 
-	//only one instance: ask the running one to open its control panel
+	// Single instance: ask the running one to open its control panel.
 	HWND previousInstance = FindWindow(APP_CLASS, NULL);
 	if (previousInstance) {
-		SendMessage(previousInstance, WM_USER + 2019, 0, 0);
+		SendMessage(previousInstance, WM_SHOW_CONTROL_PANEL, 0, 0);
 		return 0;
 	}
 
@@ -30,9 +30,9 @@ int AppDelegate::run(HINSTANCE instance) {
 	InitCommonControlsEx(&controls);
 
 	keyHookInit();
-	SystemTrayHelper::createSystemTrayIcon(hInstance);
+	Tray::create(hInstance);
 	applyAppRule();
-	SystemTrayHelper::updateData();
+	Tray::refresh();
 
 	MSG msg;
 	while (GetMessage(&msg, nullptr, 0, 0)) {
@@ -47,16 +47,7 @@ int AppDelegate::run(HINSTANCE instance) {
 	return 0;
 }
 
-void AppDelegate::createMainDialog() {
-	if (mainDialog == NULL) {
-		mainDialog = new MainControlDialog(hInstance, IDD_DIALOG_MAIN);
-		mainDialog->show();
-	} else {
-		mainDialog->bringOnTop();
-	}
-}
-
-void AppDelegate::closeDialog(BaseDialog* dialog) {
+void App::closeDialog(BaseDialog* dialog) {
 	dialog->closeDialog();
 	if (mainDialog == dialog) {
 		mainDialog = NULL;
@@ -66,36 +57,32 @@ void AppDelegate::closeDialog(BaseDialog* dialog) {
 	delete dialog;
 }
 
-void AppDelegate::refreshUi() {
+void App::refreshUi() {
 	if (mainDialog) {
-		mainDialog->fillData();
+		mainDialog->refresh();
 	}
-	SystemTrayHelper::updateData();
+	Tray::refresh();
 }
 
-void AppDelegate::onDefaultConfig() {
+void App::onDefaultConfig() {
 #define RESET_SETTING(name, value) APP_SET_DATA(name, value);
 	PERSISTED_SETTINGS(RESET_SETTING)
-	setBaseLanguage(1);
+	setBaseLanguage(LANGUAGE_VIETNAMESE);
 	refreshUi();
 }
 
-void AppDelegate::onToggleVietnamese() {
-	toggleLanguage();
-}
-
-void AppDelegate::onToggleCheckSpelling() {
+void App::onToggleCheckSpelling() {
 	APP_SET_DATA(vCheckSpelling, vCheckSpelling ? 0 : 1);
 	vSetCheckSpelling();
 	refreshUi();
 }
 
-void AppDelegate::onInputType(const int& type) {
+void App::onInputType(const int& type) {
 	APP_SET_DATA(vInputType, type);
 	refreshUi();
 }
 
-void AppDelegate::onAppRules() {
+void App::onAppRules() {
 	if (rulesDialog == NULL) {
 		rulesDialog = new AppRulesDialog(hInstance, IDD_DIALOG_APP_RULES);
 		rulesDialog->show();
@@ -104,12 +91,17 @@ void AppDelegate::onAppRules() {
 	}
 }
 
-void AppDelegate::onControlPanel() {
-	createMainDialog();
+void App::onControlPanel() {
+	if (mainDialog == NULL) {
+		mainDialog = new MainControlDialog(hInstance, IDD_DIALOG_MAIN);
+		mainDialog->show();
+	} else {
+		mainDialog->bringOnTop();
+	}
 }
 
-void AppDelegate::onExit() {
+void App::onExit() {
 	keyHookFree();
-	SystemTrayHelper::removeSystemTray();
+	Tray::remove();
 	PostQuitMessage(0);
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "stdafx.h"
+#include "common.h"
 
 // Small helpers shared by the dialogs that show a two-column report list.
 

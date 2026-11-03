@@ -9,7 +9,7 @@ struct QuickRule {
 	vector<Uint32> codes; // characters typed instead
 };
 
-static vector<QuickRule> _rules;
+static vector<QuickRule> quickRules;
 
 static bool isAsciiLetter(wchar_t c) {
 	return (c >= L'a' && c <= L'z') || (c >= L'A' && c <= L'Z');
@@ -38,21 +38,21 @@ static bool formsVietnameseLetter(const wstring& trigger) {
 
 static void saveQuickTyping() {
 	vector<pair<wstring, wstring>> entries;
-	for (size_t i = 0; i < _rules.size(); i++) {
+	for (size_t i = 0; i < quickRules.size(); i++) {
 		// A trigger has no spaces, so the first space separates it from the output.
-		entries.emplace_back(to_wstring(i + 1), _rules[i].trigger + L" " + _rules[i].output);
+		entries.emplace_back(to_wstring(i + 1), quickRules[i].trigger + L" " + quickRules[i].output);
 	}
-	SystemHelper::writeSection(INI_QUICK_TYPING, entries);
+	Os::writeSection(INI_QUICK_TYPING, entries);
 }
 
 wstring checkQuickTrigger(const wstring& trigger) {
 	if (trigger.empty()) return L"Nhập chuỗi cần gõ.";
 	if (trigger.size() > QUICK_TYPING_MAX_TRIGGER) return L"Tối đa " + to_wstring(QUICK_TYPING_MAX_TRIGGER) + L" ký tự.";
 	if (!all_of(trigger.begin(), trigger.end(), isAsciiLetter)) {
-		return L"Chỉ dùng chữ cái a-z, không dấu, không khoảng trắng, không số và dấu câu.";
+		return L"Chỉ dùng chữ cái a-z, không dấu.";
 	}
 	if (formsVietnameseLetter(trigger)) {
-		return L"Chuỗi này tạo thành chữ có dấu khi gõ Telex (ví dụ aa, dd, as, w). Hãy đổi chuỗi khác.";
+		return L"Telex sẽ biến chuỗi này thành chữ có dấu (vd: aa, dd, as, w).";
 	}
 	return L"";
 }
@@ -76,54 +76,54 @@ static QuickRule makeRule(const wstring& trigger, const wstring& output) {
 }
 
 static vector<QuickRule>::iterator findRule(const wstring& trigger) {
-	return find_if(_rules.begin(), _rules.end(), [&](const QuickRule& rule) { return rule.trigger == trigger; });
+	return find_if(quickRules.begin(), quickRules.end(), [&](const QuickRule& rule) { return rule.trigger == trigger; });
 }
 
 void loadQuickTyping() {
-	_rules.clear();
-	for (const auto& entry : SystemHelper::readSection(INI_QUICK_TYPING)) {
+	quickRules.clear();
+	for (const auto& entry : Os::readSection(INI_QUICK_TYPING)) {
 		size_t space = entry.second.find(L' ');
 		if (space == wstring::npos) continue;
 		wstring trigger = entry.second.substr(0, space), output = entry.second.substr(space + 1);
-		if (checkQuickTrigger(trigger).empty() && checkQuickOutput(output).empty() && findRule(trigger) == _rules.end()) {
-			_rules.push_back(makeRule(trigger, output));
+		if (checkQuickTrigger(trigger).empty() && checkQuickOutput(output).empty() && findRule(trigger) == quickRules.end()) {
+			quickRules.push_back(makeRule(trigger, output));
 		}
 	}
 }
 
 vector<pair<wstring, wstring>> getQuickTyping() {
 	vector<pair<wstring, wstring>> rules;
-	for (const QuickRule& rule : _rules) {
+	for (const QuickRule& rule : quickRules) {
 		rules.emplace_back(rule.trigger, rule.output);
 	}
 	return rules;
 }
 
 bool hasQuickTyping(const wstring& trigger) {
-	return findRule(trigger) != _rules.end();
+	return findRule(trigger) != quickRules.end();
 }
 
 void setQuickTyping(const wstring& trigger, const wstring& output) {
 	auto existing = findRule(trigger);
-	if (existing != _rules.end()) {
+	if (existing != quickRules.end()) {
 		*existing = makeRule(trigger, output);
 	} else {
-		_rules.push_back(makeRule(trigger, output));
+		quickRules.push_back(makeRule(trigger, output));
 	}
 	saveQuickTyping();
 }
 
 void removeQuickTyping(const wstring& trigger) {
 	auto existing = findRule(trigger);
-	if (existing != _rules.end()) {
-		_rules.erase(existing);
+	if (existing != quickRules.end()) {
+		quickRules.erase(existing);
 		saveQuickTyping();
 	}
 }
 
 // Called by the engine at every word break.
 bool findMacro(vector<Uint32>& key, vector<Uint32>& macroContentCode) {
-	for (const QuickRule& rule : _rules) {
+	for (const QuickRule& rule : quickRules) {
 		if (rule.keys == key) {
 			macroContentCode = rule.codes;
 			return true;

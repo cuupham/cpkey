@@ -13,9 +13,6 @@
 
 using namespace std;
 
-//#define V_PLATFORM_MAC              1
-//#define V_PLATFORM_WINDOWS          2
-
 #define MAX_BUFF 32
 
 enum vKeyEvent {
@@ -38,55 +35,35 @@ enum vKeyInputType {
 };
 
 typedef unsigned char Byte;
-typedef signed char Int8;
 typedef unsigned char Uint8;
 typedef unsigned short Uint16;
 typedef unsigned int Uint32;
-typedef unsigned long int Uint64;
 
-enum HoolCodeState {
-    vDoNothing = 0, //do not do anything
-    vWillProcess, //will reverse
-    vBreakWord, //start new
-    vRestore, //restore character to old char
-    vReplaceMaro, //replace by macro
-    vRestoreAndStartNewSession, //special flag: use for restore key if invalid word with break character (, . ")
+enum HookCodeState {
+    vDoNothing = 0,
+    vWillProcess, // replace the typed word with charData
+    vBreakWord,
+    vRestore, // restore the keys typed before the word was transformed
+    vReplaceMacro,
+    vRestoreAndStartNewSession, // restore on an invalid word ended by a break character (, . ")
 };
 
-//bytes data for main program
+// Result of a key event, read by the application.
 struct vKeyHookState {
-    /*
-     * 0: Do nothing
-     * 1: Process
-     * 2: Word break;
-     * 3: Restore
-     * 4: replace by macro
-     */
-    Byte code;
+    Byte code; // HookCodeState
     Byte backspaceCount;
     Byte newCharCount;
 
-    /**
-     * 1: Word Break
-     * 2: Delete key
-     * 3: Normal key
-     * 4: Should not send empty character
-     */
+    // 1: word break, 2: delete key, 3: normal key, 4: do not send the empty character
     Byte extCode;
 
-    Uint32 charData[MAX_BUFF]; //new character will be put in queue
+    Uint32 charData[MAX_BUFF]; // new characters, in reverse typing order
 
-    vector<Uint32> macroKey; //used for macro function; it is a key
-    vector<Uint32> macroData; //used for macro function; it is keycode data
+    vector<Uint32> macroKey; // keys typed as the abbreviation
+    vector<Uint32> macroData; // characters typed instead
 };
 
-#ifdef LINUX
-#include "platforms/linux.h"
-#elif _WIN32
 #include "platforms/win32.h"
-#else
-#include "platforms/mac.h"
-#endif
 
 //internal engine data
 #define CAPS_MASK  0x10000
@@ -113,10 +90,10 @@ struct vKeyHookState {
 //mark and get first 16 bytes character
 #define CHAR_MASK 0xFFFF
 
-//Check whether the data is create by standalone key or not (W)
+//Whether the data was created by a standalone key (W)
 #define STANDALONE_MASK 0x1000000
 
-//Chec whether the data is keyboard code or character code
+//Whether the data is a character code (not a keyboard code)
 #define CHAR_CODE_MASK 0x2000000
 
 #define PURE_CHARACTER_MASK 0x80000000

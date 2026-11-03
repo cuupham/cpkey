@@ -1,9 +1,13 @@
-#include "SystemTrayHelper.h"
-#include "AppDelegate.h"
+#include "Tray.h"
+#include "App.h"
 
-#define WM_TRAYMESSAGE        (WM_USER + 1)
-#define WM_SHOW_CONTROL_PANEL (WM_USER + 2019)
-#define TRAY_ICONUID          100
+#define WM_TRAYMESSAGE (WM_USER + 1)
+#define TRAY_ICONUID   100
+
+#define WINDOW_RETRY_MS    3000
+#define MAX_WINDOW_RETRIES 5
+#define ICON_ADD_RETRY_MS  1000
+#define MAX_ICON_ADD_TRIES 5
 
 #define POPUP_VIET_ON_OFF 900
 #define POPUP_SPELLING    901
@@ -36,22 +40,22 @@ static map<UINT, LPCTSTR> menuData = {
 };
 
 static void onTrayMenuCommand(UINT commandId) {
-	AppDelegate* app = AppDelegate::getInstance();
+	App* app = App::getInstance();
 	switch (commandId) {
 		case POPUP_VIET_ON_OFF:
-			app->onToggleVietnamese();
+			toggleLanguage();
 			break;
 		case POPUP_SPELLING:
 			app->onToggleCheckSpelling();
 			break;
 		case POPUP_TELEX:
-			app->onInputType(0);
+			app->onInputType(vTelex);
 			break;
 		case POPUP_VNI:
-			app->onInputType(1);
+			app->onInputType(vVNI);
 			break;
 		case POPUP_SIMPLE_TELEX:
-			app->onInputType(2);
+			app->onInputType(vSimpleTelex1);
 			break;
 		case POPUP_APP_RULES:
 			app->onAppRules();
@@ -65,7 +69,7 @@ static void onTrayMenuCommand(UINT commandId) {
 	}
 }
 
-static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+static LRESULT CALLBACK trayWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	static UINT taskbarCreated;
 
 	switch (message) {
@@ -73,24 +77,24 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 			taskbarCreated = RegisterWindowMessage(_T("TaskbarCreated"));
 			break;
 		case WM_SHOW_CONTROL_PANEL:
-			AppDelegate::getInstance()->onControlPanel();
+			App::getInstance()->onControlPanel();
 			break;
 		case WM_TRAYMESSAGE:
 			if (lParam == WM_LBUTTONDBLCLK) {
-				AppDelegate::getInstance()->onControlPanel();
+				App::getInstance()->onControlPanel();
 			} else if (lParam == WM_LBUTTONUP) {
-				AppDelegate::getInstance()->onToggleVietnamese();
+				toggleLanguage();
 			} else if (lParam == WM_RBUTTONDOWN) {
 				POINT curPoint;
 				GetCursorPos(&curPoint);
 				SetForegroundWindow(hWnd);
 				UINT commandId = TrackPopupMenu(popupMenu, TPM_RETURNCMD | TPM_NONOTIFY, curPoint.x, curPoint.y, 0, hWnd, NULL);
 				onTrayMenuCommand(commandId);
-				SystemTrayHelper::updateData();
+				Tray::refresh();
 			}
 			break;
 		default:
-			// if the taskbar is restarted, add the system tray icon again
+			// A restarted taskbar loses the icon.
 			if (message == taskbarCreated) {
 				Shell_NotifyIcon(NIM_ADD, &nid);
 			}
@@ -99,10 +103,10 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 	return 0;
 }
 
-HWND SystemTrayHelper::createFakeWindow(const HINSTANCE& hIns) {
+static HWND createHiddenWindow(const HINSTANCE& hIns) {
 	WNDCLASSEXW wcex = { 0 };
 	wcex.cbSize = sizeof(WNDCLASSEX);
-	wcex.lpfnWndProc = WndProc;
+	wcex.lpfnWndProc = trayWindowProc;
 	wcex.hInstance = hIns;
 	wcex.hIcon = LoadIcon(hIns, MAKEINTRESOURCE(IDI_APP_ICON));
 	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
@@ -118,7 +122,7 @@ HWND SystemTrayHelper::createFakeWindow(const HINSTANCE& hIns) {
 	return hWnd;
 }
 
-void SystemTrayHelper::createPopupMenu() {
+static void createPopupMenu() {
 	popupMenu = CreatePopupMenu();
 	AppendMenu(popupMenu, MF_CHECKED, POPUP_VIET_ON_OFF, menuData[POPUP_VIET_ON_OFF]);
 	AppendMenu(popupMenu, MF_CHECKED, POPUP_SPELLING, menuData[POPUP_SPELLING]);
@@ -139,40 +143,46 @@ static void loadTrayIcon() {
 	int icon;
 	if (vLanguage) {
 		icon = vUseGrayIcon ? IDI_ICON_STATUS_VIET_10 : IDI_ICON_STATUS_VIET;
-		LoadString(GetModuleHandle(0), IDS_TRAY_TITLE_2, nid.szTip, 128);
+		LoadString(GetModuleHandle(0), IDS_TRAY_TITLE_2, nid.szTip, ARRAYSIZE(nid.szTip));
 	} else {
 		icon = vUseGrayIcon ? IDI_ICON_STATUS_ENG_10 : IDI_ICON_STATUS_ENG;
-		LoadString(GetModuleHandle(0), IDS_TRAY_TITLE, nid.szTip, 128);
+		LoadString(GetModuleHandle(0), IDS_TRAY_TITLE, nid.szTip, ARRAYSIZE(nid.szTip));
 	}
 	nid.hIcon = LoadIcon(GetModuleHandle(0), MAKEINTRESOURCE(icon));
 }
 
-void SystemTrayHelper::updateData() {
+void Tray::refresh() {
 	loadTrayIcon();
 	Shell_NotifyIcon(NIM_MODIFY, &nid);
 
 	MODIFY_MENU(popupMenu, POPUP_VIET_ON_OFF, vLanguage);
 	EnableMenuItem(popupMenu, POPUP_VIET_ON_OFF, MF_BYCOMMAND | (isLanguageLocked() ? MF_GRAYED : MF_ENABLED));
 	MODIFY_MENU(popupMenu, POPUP_SPELLING, vCheckSpelling);
-	MODIFY_MENU(popupMenu, POPUP_TELEX, vInputType == 0);
-	MODIFY_MENU(popupMenu, POPUP_VNI, vInputType == 1);
-	MODIFY_MENU(popupMenu, POPUP_SIMPLE_TELEX, vInputType == 2);
+	MODIFY_MENU(popupMenu, POPUP_TELEX, vInputType == vTelex);
+	MODIFY_MENU(popupMenu, POPUP_VNI, vInputType == vVNI);
+	MODIFY_MENU(popupMenu, POPUP_SIMPLE_TELEX, vInputType == vSimpleTelex1);
 }
 
 static HINSTANCE ins;
-static int recreateCount = 0;
+static int retryCount = 0;
 
-void SystemTrayHelper::_createSystemTrayIcon(const HINSTANCE& hIns) {
+static void CALLBACK retryCreate(HWND hwnd, UINT uMsg, UINT_PTR timerId, DWORD dwTime) {
+	KillTimer(0, timerId);
+	Tray::create(ins);
+}
+
+void Tray::create(const HINSTANCE& hIns) {
 	ins = hIns;
-	HWND hWnd = createFakeWindow(ins);
+	HWND hWnd = createHiddenWindow(ins);
 
-	if (hWnd == NULL) { //Use timer to create
-		if (recreateCount >= 5) {
+	// The shell may not be ready at logon; try again a few times before giving up.
+	if (hWnd == NULL) {
+		if (retryCount >= MAX_WINDOW_RETRIES) {
 			PostQuitMessage(0);
 			return;
 		}
-		SetTimer(NULL, 0, 1000 * 3, WaitToCreateFakeWindow);
-		++recreateCount;
+		SetTimer(NULL, 0, WINDOW_RETRY_MS, retryCreate);
+		++retryCount;
 		return;
 	}
 	createPopupMenu();
@@ -185,25 +195,15 @@ void SystemTrayHelper::_createSystemTrayIcon(const HINSTANCE& hIns) {
 	loadTrayIcon();
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
 
-	// Shell_NotifyIcon may fail if the system tray icon is not fully initialized
-	const int maxRetries = 5;
-	for (int attempt = 0; attempt < maxRetries; ++attempt) {
+	// Shell_NotifyIcon fails until the tray is initialized.
+	for (int attempt = 0; attempt < MAX_ICON_ADD_TRIES; ++attempt) {
 		if (Shell_NotifyIcon(NIM_ADD, &nid)) {
 			break;
 		}
-		Sleep(1000);
+		Sleep(ICON_ADD_RETRY_MS);
 	}
 }
 
-void CALLBACK SystemTrayHelper::WaitToCreateFakeWindow(HWND hwnd, UINT uMsg, UINT_PTR timerId, DWORD dwTime) {
-	KillTimer(0, timerId);
-	_createSystemTrayIcon(ins);
-}
-
-void SystemTrayHelper::createSystemTrayIcon(const HINSTANCE& hIns) {
-	_createSystemTrayIcon(hIns);
-}
-
-void SystemTrayHelper::removeSystemTray() {
+void Tray::remove() {
 	Shell_NotifyIcon(NIM_DELETE, &nid);
 }

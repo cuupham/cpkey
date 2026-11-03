@@ -67,7 +67,7 @@ map<Uint16, vector<vector<Uint16>>> _vowel = {
 
 map<Uint16, vector<vector<Uint32>>> _vowelCombine = {
     { KEY_A, {
-                 //fist elem can has end consonant or not
+                 //first element: whether an end consonant is allowed
                  { 0, KEY_A, KEY_I },
                  { 0, KEY_A, KEY_O },
                  { 0, KEY_A, KEY_U },

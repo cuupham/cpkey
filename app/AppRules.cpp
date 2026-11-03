@@ -2,7 +2,7 @@
 
 #define INI_APP_RULES _T("AppRules")
 
-static map<string, int> _rules;
+static map<string, int> appRules;
 
 // Windows treats exe names case-insensitively.
 static string normalize(string exe) {
@@ -12,40 +12,40 @@ static string normalize(string exe) {
 
 static void saveAppRules() {
 	vector<pair<wstring, wstring>> entries;
-	for (const auto& rule : _rules) {
-		entries.emplace_back(SystemHelper::toWide(rule.first), to_wstring(rule.second));
+	for (const auto& rule : appRules) {
+		entries.emplace_back(Os::toWide(rule.first), to_wstring(rule.second));
 	}
-	SystemHelper::writeSection(INI_APP_RULES, entries);
+	Os::writeSection(INI_APP_RULES, entries);
 }
 
 void loadAppRules() {
-	_rules.clear();
-	for (const auto& entry : SystemHelper::readSection(INI_APP_RULES)) {
-		_rules[SystemHelper::toUtf8(entry.first)] = _wtoi(entry.second.c_str());
+	appRules.clear();
+	for (const auto& entry : Os::readSection(INI_APP_RULES)) {
+		appRules[Os::toUtf8(entry.first)] = _wtoi(entry.second.c_str());
 	}
 }
 
 int getAppRule(const string& exe) {
-	auto it = _rules.find(normalize(exe));
-	return it == _rules.end() ? RULE_NONE : it->second;
+	auto it = appRules.find(normalize(exe));
+	return it == appRules.end() ? RULE_NONE : it->second;
 }
 
 void setAppRule(const string& exe, int mode) {
-	_rules[normalize(exe)] = mode;
+	appRules[normalize(exe)] = mode;
 	saveAppRules();
 	reapplyAppRule();
 }
 
 void removeAppRule(const string& exe) {
-	_rules.erase(normalize(exe));
+	appRules.erase(normalize(exe));
 	saveAppRules();
 	reapplyAppRule();
 }
 
 const map<string, int>& getAllAppRules() {
-	return _rules;
+	return appRules;
 }
 
 LPCTSTR ruleModeText(int mode) {
-	return mode == RULE_VIETNAMESE ? _T("Luôn tiếng Việt") : _T("Luôn tiếng Anh");
+	return mode == LANGUAGE_VIETNAMESE ? _T("Luôn tiếng Việt") : _T("Luôn tiếng Anh");
 }
