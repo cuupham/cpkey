@@ -1,0 +1,73 @@
+# Hand-checked Vietnamese. Columns: profile, keys typed, text on screen.
+# Tones and marks
+telex	vieejt	việt
+telex	Vieejt	Việt
+telex	Vieejt Nam	Việt Nam
+telex	tooi	tôi
+telex	nguwowif	người
+telex	uwowng	ương
+telex	truowng	trương
+telex	ddieeuf	điều
+telex	Ddaji	Đại
+telex	DAJI	DẠI
+telex	chuyeenr	chuyển
+telex	toans	toán
+telex	tieesng	tiếng
+telex	khoong	không
+telex	nguyeenx	nguyễn
+telex	muoons	muốn
+telex	dduwowcj	được
+telex	tuwf	từ
+telex	giaf	già
+telex	nghiee	nghiê
+telex	Hoaf Binhf	Hòa Bình
+telex	xin chaof	xin chào
+telex	xin chaof, cacs banj.	xin chào, các bạn.
+telex	Tieesng Vieejt.	Tiếng Việt.
+# Placing the tone: old style by default, new style when enabled
+telex	hoaf	hòa
+telex	hoas	hóa
+telex	thuys	thúy
+telex-modern	hoaf	hoà
+telex-modern	hoas	hoá
+telex-modern	thuys	thuý
+vni	hoa2	hòa
+vni	thuy1	thúy
+vni-modern	hoa2	hoà
+vni-modern	thuy1	thuý
+# Typing a key twice undoes it
+telex	ass	as
+telex	ddd	dd
+telex	aaa	aa
+# Standalone keys
+telex	w	ư
+telex	[	ơ
+telex	]	ư
+simple-telex	w	w
+simple-telex	[	[
+# Spelling check restores words that are not Vietnamese
+telex	tesst	test
+telex	th	th
+# Backspace
+telex	vieejt{BS}	việ
+telex	dd{BS}d	d
+# VNI
+vni	vie6t5	việt
+vni	ngu7o7i2	người
+vni	d9a1	đá
+vni	to6i	tôi
+vni	d9u7o7c5	được
+vni	chuye6n3	chuyển
+# Numbers stay numbers
+telex	1234	1234
+telex	a1	a1
+# Quick typing: exact match on a word break; Vietnamese engine and English mode
+telex-macro	vn 	Việt Nam 
+telex-macro	tphcm 	Thành phố Hồ Chí Minh 
+telex-macro	Vn 	Vn 
+telex-macro	xvn 	xvn 
+telex-macro	vn{BS} 	v 
+english-macro	vn 	Việt Nam 
+english-macro	xvn 	xvn 
+# Capital after a full stop
+telex-capsfirst	xin chao. toi la	xin chao. Toi la

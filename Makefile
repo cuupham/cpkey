@@ -32,8 +32,20 @@ $(OUT)/app/app-res.o: app/app.rc app/resource.h app/app.manifest
 	@mkdir -p $(dir $@)
 	windres $(DEFINES) -Iapp -c 65001 $< -O coff -o $@
 
+# Tests link the engine and the modules that need no window or hook. Run from the repo root.
+TEST_SRC := $(wildcard tests/*.cpp)
+TEST_OBJ := $(TEST_SRC:%.cpp=$(OUT)/%.o)
+TEST_DEPS := $(addprefix $(OUT)/app/,Os.o Settings.o QuickTyping.o AppRules.o) $(OUT)/engine/Engine.o $(OUT)/engine/Vietnamese.o
+TEST_TARGET := $(OUT)/tests/$(APP_NAME)-test.exe
+
+$(TEST_TARGET): $(TEST_OBJ) $(TEST_DEPS)
+	$(CXX) -static -o $@ $^ $(LIBS)
+
+test: $(TEST_TARGET)
+	$(TEST_TARGET)
+
 # Needs clang-format on PATH. resource.h belongs to the resource editor, so it is left alone.
-FORMAT_FILES := $(SRC) $(filter-out app/resource.h,$(wildcard app/*.h engine/*.h engine/platforms/*.h))
+FORMAT_FILES := $(SRC) $(TEST_SRC) $(filter-out app/resource.h,$(wildcard app/*.h engine/*.h engine/platforms/*.h tests/*.h))
 
 format:
 	clang-format -i $(FORMAT_FILES)
@@ -44,5 +56,5 @@ format-check:
 clean:
 	rm -rf $(OUT)
 
--include $(OBJ:.o=.d)
-.PHONY: all clean format format-check
+-include $(OBJ:.o=.d) $(TEST_OBJ:.o=.d)
+.PHONY: all clean test format format-check
