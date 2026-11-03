@@ -67,7 +67,7 @@ wstring checkQuickOutput(const wstring& output) {
 static QuickRule makeRule(const wstring& trigger, const wstring& output) {
 	QuickRule rule = { trigger, output };
 	for (wchar_t c : trigger) {
-		rule.keys.push_back(_characterMap[c]);
+		rule.keys.push_back(characterMap[c]);
 	}
 	for (wchar_t c : output) {
 		rule.codes.push_back((uint32_t)c | PURE_CHARACTER_MASK);

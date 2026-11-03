@@ -117,7 +117,7 @@ std::string typeKeys(const TypingProfile& profile, const std::string& keys) {
             keyCode = KEY_DELETE;
             i += strlen(BACKSPACE_TOKEN) - 1;
         } else {
-            uint32_t mapped = _characterMap[(unsigned char)keys[i]];
+            uint32_t mapped = characterMap[(unsigned char)keys[i]];
             keyCode = mapped & ~CAPS_MASK;
             shift = mapped & CAPS_MASK;
         }
