@@ -34,8 +34,8 @@ static map<UINT, LPCTSTR> menuData = {
 	{ POPUP_TELEX, _T("Kiểu gõ Telex") },
 	{ POPUP_VNI, _T("Kiểu gõ VNI") },
 	{ POPUP_SIMPLE_TELEX, _T("Kiểu gõ Simple Telex") },
-	{ POPUP_APP_RULES, _T("Cấu hình theo ứng dụng...") },
-	{ POPUP_CONTROL_PANEL, _T("Bảng điều khiển...") },
+	{ POPUP_APP_RULES, _T("Cấu hình theo ứng dụng") },
+	{ POPUP_CONTROL_PANEL, _T("Bảng điều khiển") },
 	{ POPUP_EXIT, _T("Thoát") },
 };
 

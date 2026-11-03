@@ -44,6 +44,8 @@ const DWORD DWM_CAPTION_COLOR = 35;
 const DWORD DWM_TEXT_COLOR = 36;
 
 const UINT_PTR SUBCLASS_ID = 1;
+// Set on dialogs this module themed, so every other message passes through untouched.
+const TCHAR THEMED_PROPERTY[] = _T("CPKeyDarkTheme");
 
 enum class Kind { Check,
                   Radio,
@@ -412,8 +414,9 @@ BOOL CALLBACK darkenControl(HWND control, LPARAM) {
 				break;
 			case BS_GROUPBOX:
 				subclass(control, Kind::Card);
-				// Dialog controls are created top-down, so a card starts above the controls it holds and
-				// wipes them whenever it repaints on its own.
+				// Dialog controls are created top-down, so a group box starts above the controls it holds and
+				// wipes them whenever it repaints on its own. At the bottom and clipped, it cannot.
+				SetWindowLong(control, GWL_STYLE, GetWindowLong(control, GWL_STYLE) | WS_CLIPSIBLINGS);
 				SetWindowPos(control, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 				break;
 		}
@@ -425,6 +428,11 @@ BOOL CALLBACK darkenControl(HWND control, LPARAM) {
 		darkenList(control);
 	}
 	return TRUE;
+}
+
+bool highContrast() {
+	HIGHCONTRAST contrast = { sizeof(contrast) };
+	return SystemParametersInfo(SPI_GETHIGHCONTRAST, sizeof(contrast), &contrast, 0) && (contrast.dwFlags & HCF_HIGHCONTRASTON);
 }
 
 void apply(HWND dialog) {
@@ -440,9 +448,18 @@ void apply(HWND dialog) {
 } // namespace
 
 bool handleMessage(HWND dialog, UINT message, WPARAM wParam, LPARAM lParam, INT_PTR& result) {
-	switch (message) {
-		case WM_INITDIALOG:
+	if (message == WM_INITDIALOG) {
+		// High Contrast users choose their own colours, so the dialog keeps the system theme.
+		if (!highContrast()) {
 			apply(dialog);
+			SetProp(dialog, THEMED_PROPERTY, (HANDLE)1);
+		}
+		return false;
+	}
+	if (!GetProp(dialog, THEMED_PROPERTY)) return false;
+	switch (message) {
+		case WM_DESTROY:
+			RemoveProp(dialog, THEMED_PROPERTY);
 			return false;
 		case WM_CTLCOLORDLG:
 			result = (INT_PTR)brushOf(BACKGROUND);
