@@ -3,6 +3,7 @@
 
 int main() {
     runEngineTests();
+    runTextEditTests();
     runQuickTypingTests();
     runAppRulesTests();
     if (failureCount() > 0) {

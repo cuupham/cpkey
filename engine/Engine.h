@@ -12,6 +12,7 @@
 #include "DataType.h"
 #include "Vietnamese.h"
 #include "Macro.h"
+#include "TextEdit.h"
 
 // Layout of the switch-key setting: low byte and top byte hold the key, the middle bits hold the modifiers.
 #define EMPTY_SWITCH_KEY      0xFEu

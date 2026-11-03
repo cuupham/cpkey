@@ -88,14 +88,9 @@ static void sendCombo(uint16_t modifier, uint16_t key, DWORD modifierFlags = 0, 
 	SendInput(1, keyEvents, sizeof(INPUT));
 }
 
-// `data` is either a key code from the engine or a finished character (CHAR_CODE_MASK).
+// `data` is an engine character: a finished character or a key code.
 static void sendKeyCode(uint32_t data) {
-	if (data & CHAR_CODE_MASK) {
-		sendUnicode((uint16_t)data);
-		return;
-	}
-	uint16_t character = keyCodeToCharacter(data);
-	if (character) {
+	if (uint16_t character = engineCharToUnicode(data)) {
 		sendUnicode(character);
 	} else {
 		sendVirtualKey((uint16_t)data);
@@ -114,18 +109,15 @@ static void sendEmptyCharacter() {
 }
 
 // Pastes the new text through the clipboard (Shift+Insert) instead of typing it key by key.
-static void sendByClipboard() {
-	uint8_t code = engineState->code;
+static void sendByClipboard(const TextEdit& edit) {
 	vector<WCHAR> text;
-	for (int i = engineState->newCharCount - 1; i >= 0; i--) {
-		uint32_t data = engineState->charData[i];
-		bool isKeyCode = !(data & PURE_CHARACTER_MASK) && !(data & CHAR_CODE_MASK);
-		text.push_back(isKeyCode ? keyCodeToCharacter(data) : (WCHAR)data);
+	for (uint32_t data : edit.chars) {
+		text.push_back(engineCharToUnicode(data));
 	}
 
 	// A restore re-adds the key that triggered it; a control key (Tab, arrows...) is sent after the paste.
 	bool sendControlKey = false;
-	if (code == vRestore || code == vRestoreAndStartNewSession) {
+	if (edit.retypeKey) {
 		if (keyCodeToCharacter(keyCode)) {
 			bool caps = (modifiers & MASK_SHIFT) || (modifiers & MASK_CAPITAL);
 			text.push_back(keyCodeToCharacter(keyCode | (caps ? CAPS_MASK : 0)));
@@ -133,7 +125,7 @@ static void sendByClipboard() {
 			sendControlKey = true;
 		}
 	}
-	if (code == vRestoreAndStartNewSession) {
+	if (edit.startsNewSession) {
 		startNewSession();
 	}
 
@@ -147,13 +139,15 @@ static void sendByClipboard() {
 
 // Erases the abbreviation just typed, types its replacement, then passes on the key that ended the word.
 static void applyQuickTyping() {
+	TextEdit edit = planTextEdit(*engineState);
+	int backspaces = edit.backspaces;
 	if (vFixRecommendBrowser) {
 		sendEmptyCharacter();
-		engineState->backspaceCount++;
+		backspaces++;
 	}
-	sendBackspaces(engineState->backspaceCount);
-	for (uint32_t code : engineState->macroData) {
-		sendUnicode((uint16_t)code);
+	sendBackspaces(backspacesToSend(backspaces));
+	for (uint32_t data : edit.chars) {
+		sendKeyCode(data);
 	}
 	sendKeyCode(keyCode | (modifiers & MASK_SHIFT ? CAPS_MASK : 0));
 }
@@ -320,46 +314,43 @@ static bool handleEnglishKey(bool isKeyDown) {
 
 // Sends the engine's result to the app. Returns true when the key was consumed.
 static bool applyEngineResult() {
-	uint8_t code = engineState->code;
-	if (code == vReplaceMacro) {
+	if (engineState->code == vReplaceMacro) {
 		applyQuickTyping();
 		return true;
 	}
-	if (code != vWillProcess && code != vRestore && code != vRestoreAndStartNewSession) {
+	TextEdit edit = planTextEdit(*engineState);
+	if (!edit.consumed) {
 		return false;
 	}
+	int backspaces = edit.backspaces;
 
 	// Address bars and Excel auto-complete the word and duplicate letters after the backspaces.
 	if (vFixRecommendBrowser && engineState->extCode != 4) {
 		if (vFixChromiumBrowser &&
 		    std::find(CHROMIUM_BROWSERS.begin(), CHROMIUM_BROWSERS.end(), Os::getLastExecutableName()) != CHROMIUM_BROWSERS.end()) {
 			sendCombo(KEY_LEFT_SHIFT, KEY_LEFT, 0, KEYEVENTF_EXTENDEDKEY);
-			if (engineState->backspaceCount == 1)
-				engineState->backspaceCount--;
+			if (backspaces == 1)
+				backspaces--;
 		} else {
 			sendEmptyCharacter();
-			engineState->backspaceCount++;
+			backspaces++;
 		}
 	}
 
-	if (engineState->backspaceCount > 0 && engineState->backspaceCount < MAX_BUFF) {
-		sendBackspaces(engineState->backspaceCount);
-	}
+	sendBackspaces(backspacesToSend(backspaces));
 
 	if (!vSendKeyStepByStep) {
-		sendByClipboard();
+		sendByClipboard(edit);
 		return true;
 	}
-	if (engineState->newCharCount > 0 && engineState->newCharCount <= MAX_BUFF) {
-		for (int i = engineState->newCharCount - 1; i >= 0; i--) {
-			sendKeyCode(engineState->charData[i]);
-		}
+	for (uint32_t data : edit.chars) {
+		sendKeyCode(data);
 	}
-	if (code == vRestore || code == vRestoreAndStartNewSession) {
+	if (edit.retypeKey) {
 		bool caps = (modifiers & MASK_CAPITAL) || (modifiers & MASK_SHIFT);
 		sendKeyCode(keyCode | (caps ? CAPS_MASK : 0));
 	}
-	if (code == vRestoreAndStartNewSession) {
+	if (edit.startsNewSession) {
 		startNewSession();
 	}
 	return true;

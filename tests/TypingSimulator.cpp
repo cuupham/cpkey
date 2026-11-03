@@ -69,11 +69,8 @@ static std::string toUtf8(const std::u16string& text) {
     return out;
 }
 
-// What the application sends to the focused window for one engine character.
 static void appendEngineChar(std::u16string& screen, uint32_t data) {
-    if (data & CHAR_CODE_MASK) {
-        screen += (char16_t)data;
-    } else if (uint16_t character = keyCodeToCharacter(data)) {
+    if (uint16_t character = engineCharToUnicode(data)) {
         screen += (char16_t)character;
     }
 }
@@ -84,20 +81,11 @@ static void deleteLast(std::u16string& screen, int count) {
     }
 }
 
-// Mirrors the engine-result handling of app/KeyHook.cpp, minus the browser workarounds.
+// Applies the engine's answer like the application does, but to a string and without the browser workarounds.
 static void applyEngineResult(std::u16string& screen, uint16_t keyCode, bool shift) {
-    const vKeyHookState* state = engineState;
     uint32_t keyWithCaps = keyCode | (shift ? CAPS_MASK : 0);
-    uint8_t code = state->code;
-    if (code == vReplaceMacro) {
-        deleteLast(screen, state->backspaceCount);
-        for (uint32_t macroChar : state->macroData) {
-            screen += (char16_t)macroChar;
-        }
-        appendEngineChar(screen, keyWithCaps);
-        return;
-    }
-    if (code != vWillProcess && code != vRestore && code != vRestoreAndStartNewSession) {
+    TextEdit edit = planTextEdit(*engineState);
+    if (!edit.consumed) {
         if (keyCode == KEY_DELETE) {
             deleteLast(screen, 1);
         } else {
@@ -105,16 +93,14 @@ static void applyEngineResult(std::u16string& screen, uint16_t keyCode, bool shi
         }
         return;
     }
-    if (state->backspaceCount > 0 && state->backspaceCount < MAX_BUFF) {
-        deleteLast(screen, state->backspaceCount);
+    deleteLast(screen, backspacesToSend(edit.backspaces));
+    for (uint32_t data : edit.chars) {
+        appendEngineChar(screen, data);
     }
-    for (int i = state->newCharCount - 1; i >= 0; i--) {
-        appendEngineChar(screen, state->charData[i]);
-    }
-    if (code == vRestore || code == vRestoreAndStartNewSession) {
+    if (edit.retypeKey) {
         appendEngineChar(screen, keyWithCaps);
     }
-    if (code == vRestoreAndStartNewSession) {
+    if (edit.startsNewSession) {
         startNewSession();
     }
 }
@@ -137,16 +123,9 @@ std::string typeKeys(const TypingProfile& profile, const std::string& keys) {
         }
         if (profile.english) {
             vEnglishMode(vKeyEventState::KeyDown, keyCode, shift, false);
-            if (engineState->code == vReplaceMacro) {
-                applyEngineResult(screen, keyCode, shift);
-            } else if (keyCode == KEY_DELETE) {
-                deleteLast(screen, 1);
-            } else {
-                appendEngineChar(screen, keyCode | (shift ? CAPS_MASK : 0));
-            }
-            continue;
+        } else {
+            vKeyHandleEvent(vKeyEvent::Keyboard, vKeyEventState::KeyDown, keyCode, shift ? 1 : 0, false);
         }
-        vKeyHandleEvent(vKeyEvent::Keyboard, vKeyEventState::KeyDown, keyCode, shift ? 1 : 0, false);
         applyEngineResult(screen, keyCode, shift);
     }
     return toUtf8(screen);

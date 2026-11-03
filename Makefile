@@ -4,7 +4,7 @@ OUT := build
 APP_NAME := $(shell sed -n 's/.*APP_NAME_TEXT *"\(.*\)"/\1/p' app/resource.h)
 TARGET := $(OUT)/$(APP_NAME).exe
 
-SRC := $(wildcard app/*.cpp) engine/Engine.cpp engine/Vietnamese.cpp
+SRC := $(wildcard app/*.cpp engine/*.cpp)
 OBJ := $(SRC:%.cpp=$(OUT)/%.o) $(OUT)/app/app-res.o
 
 DEFINES := -DUNICODE -D_UNICODE -DNDEBUG -D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00
@@ -32,7 +32,7 @@ $(OUT)/app/app-res.o: app/app.rc app/resource.h app/app.manifest
 # Tests link the engine and the modules that need no window or hook. Run from the repo root.
 TEST_SRC := $(wildcard tests/*.cpp)
 TEST_OBJ := $(TEST_SRC:%.cpp=$(OUT)/%.o)
-TEST_DEPS := $(addprefix $(OUT)/app/,Os.o Settings.o QuickTyping.o AppRules.o) $(OUT)/engine/Engine.o $(OUT)/engine/Vietnamese.o
+TEST_DEPS := $(addprefix $(OUT)/app/,Os.o Settings.o QuickTyping.o AppRules.o) $(filter $(OUT)/engine/%,$(OBJ))
 TEST_TARGET := $(OUT)/tests/$(APP_NAME)-test.exe
 
 $(TEST_TARGET): $(TEST_OBJ) $(TEST_DEPS)
