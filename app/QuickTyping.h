@@ -5,7 +5,7 @@
 // and then a word break replaces it with the output.
 
 #define QUICK_TYPING_MAX_TRIGGER 20
-#define QUICK_TYPING_MAX_OUTPUT 200
+#define QUICK_TYPING_MAX_OUTPUT  200
 
 void loadQuickTyping();
 

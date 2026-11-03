@@ -32,8 +32,17 @@ $(OUT)/app/app-res.o: app/app.rc app/resource.h app/app.manifest
 	@mkdir -p $(dir $@)
 	windres $(DEFINES) -Iapp -c 65001 $< -O coff -o $@
 
+# Needs clang-format on PATH. resource.h belongs to the resource editor, so it is left alone.
+FORMAT_FILES := $(SRC) $(filter-out app/resource.h,$(wildcard app/*.h engine/*.h engine/platforms/*.h))
+
+format:
+	clang-format -i $(FORMAT_FILES)
+
+format-check:
+	clang-format --dry-run --Werror $(FORMAT_FILES)
+
 clean:
 	rm -rf $(OUT)
 
 -include $(OBJ:.o=.d)
-.PHONY: all clean
+.PHONY: all clean format format-check

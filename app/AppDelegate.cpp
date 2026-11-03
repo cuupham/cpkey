@@ -3,16 +3,16 @@
 
 static AppDelegate* _instance;
 
-bool AppDelegate::isDialogMsg(MSG & msg) const {
+bool AppDelegate::isDialogMsg(MSG& msg) const {
 	return (mainDialog != NULL && IsDialogMessage(mainDialog->getHwnd(), &msg)) ||
-		(rulesDialog != NULL && IsDialogMessage(rulesDialog->getHwnd(), &msg));
+	       (rulesDialog != NULL && IsDialogMessage(rulesDialog->getHwnd(), &msg));
 }
 
 AppDelegate::AppDelegate() {
 	_instance = this;
 }
 
-AppDelegate * AppDelegate::getInstance() {
+AppDelegate* AppDelegate::getInstance() {
 	return _instance;
 }
 
@@ -35,7 +35,7 @@ int AppDelegate::run(HINSTANCE instance) {
 	SystemTrayHelper::updateData();
 
 	MSG msg;
-	while (GetMessage(&msg, nullptr, 0, 0))	{
+	while (GetMessage(&msg, nullptr, 0, 0)) {
 		if (msg.message == WM_KEYDOWN) {
 			lastKeyCode = (UINT16)msg.wParam;
 		}
@@ -56,7 +56,7 @@ void AppDelegate::createMainDialog() {
 	}
 }
 
-void AppDelegate::closeDialog(BaseDialog * dialog) {
+void AppDelegate::closeDialog(BaseDialog* dialog) {
 	dialog->closeDialog();
 	if (mainDialog == dialog) {
 		mainDialog = NULL;
@@ -90,7 +90,7 @@ void AppDelegate::onToggleCheckSpelling() {
 	refreshUi();
 }
 
-void AppDelegate::onInputType(const int & type) {
+void AppDelegate::onInputType(const int& type) {
 	APP_SET_DATA(vInputType, type);
 	refreshUi();
 }

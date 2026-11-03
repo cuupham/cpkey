@@ -2,7 +2,7 @@
 #include "stdafx.h"
 
 class SystemHelper {
-public:
+  public:
 	static void setIntSetting(LPCTSTR key, const int& val);
 	static int getIntSetting(LPCTSTR key, const int& defaultValue);
 

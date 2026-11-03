@@ -4,18 +4,21 @@
 #include "AppRulesDialog.h"
 
 class AppDelegate {
-private:
+  private:
 	HINSTANCE hInstance;
-	BaseDialog* mainDialog = NULL, *rulesDialog = NULL;
-private:
-	bool isDialogMsg(MSG &msg) const;
-public:
+	BaseDialog *mainDialog = NULL, *rulesDialog = NULL;
+
+  private:
+	bool isDialogMsg(MSG& msg) const;
+
+  public:
 	AppDelegate();
 	static AppDelegate* getInstance();
 	int run(HINSTANCE instance);
 	void createMainDialog();
 	void closeDialog(BaseDialog* dialog);
-public:
+
+  public:
 	void refreshUi();
 	void onDefaultConfig();
 

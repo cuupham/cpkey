@@ -31,7 +31,7 @@ static BOOL CALLBACK enumRunningApps(HWND hwnd, LPARAM lParam) {
 	static const string selfExe = SystemHelper::getExecuteName(SystemHelper::getFullPath());
 	TCHAR title[256];
 	if (!IsWindowVisible(hwnd) || GetWindow(hwnd, GW_OWNER) ||
-		(GetWindowLong(hwnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW) || !GetWindowText(hwnd, title, 256)) {
+	    (GetWindowLong(hwnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW) || !GetWindowText(hwnd, title, 256)) {
 		return TRUE;
 	}
 	DWORD pid;
@@ -67,38 +67,38 @@ static void browseExe(HWND hDlg, PickState& state) {
 static INT_PTR CALLBACK pickAppProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	PickState* state = (PickState*)GetWindowLongPtr(hDlg, GWLP_USERDATA);
 	switch (uMsg) {
-	case WM_INITDIALOG: {
-		state = (PickState*)lParam;
-		SetWindowLongPtr(hDlg, GWLP_USERDATA, lParam);
-		state->list = GetDlgItem(hDlg, IDC_LIST_RUNNING_APPS);
-		ListView_SetExtendedListViewStyle(state->list, LVS_EX_FULLROWSELECT);
-		addColumn(state->list, 0, _T("Ứng dụng"), 110);
-		addColumn(state->list, 1, _T("Cửa sổ"), 125);
-		EnumWindows(enumRunningApps, (LPARAM)state);
-		CheckRadioButton(hDlg, IDC_RADIO_RULE_ENGLISH, IDC_RADIO_RULE_VIETNAMESE, IDC_RADIO_RULE_ENGLISH);
-		return TRUE;
-	}
-	case WM_COMMAND:
-		switch (LOWORD(wParam)) {
-		case IDC_BUTTON_BROWSE:
-			browseExe(hDlg, *state);
+		case WM_INITDIALOG: {
+			state = (PickState*)lParam;
+			SetWindowLongPtr(hDlg, GWLP_USERDATA, lParam);
+			state->list = GetDlgItem(hDlg, IDC_LIST_RUNNING_APPS);
+			ListView_SetExtendedListViewStyle(state->list, LVS_EX_FULLROWSELECT);
+			addColumn(state->list, 0, _T("Ứng dụng"), 110);
+			addColumn(state->list, 1, _T("Cửa sổ"), 125);
+			EnumWindows(enumRunningApps, (LPARAM)state);
+			CheckRadioButton(hDlg, IDC_RADIO_RULE_ENGLISH, IDC_RADIO_RULE_VIETNAMESE, IDC_RADIO_RULE_ENGLISH);
 			return TRUE;
-		case IDOK: {
-			int row = ListView_GetNextItem(state->list, -1, LVNI_SELECTED);
-			if (row < 0) {
-				MessageBox(hDlg, _T("Hãy chọn một ứng dụng trong danh sách."), APP_NAME, MB_OK);
-				return TRUE;
+		}
+		case WM_COMMAND:
+			switch (LOWORD(wParam)) {
+				case IDC_BUTTON_BROWSE:
+					browseExe(hDlg, *state);
+					return TRUE;
+				case IDOK: {
+					int row = ListView_GetNextItem(state->list, -1, LVNI_SELECTED);
+					if (row < 0) {
+						MessageBox(hDlg, _T("Hãy chọn một ứng dụng trong danh sách."), APP_NAME, MB_OK);
+						return TRUE;
+					}
+					state->exe = state->exes[row];
+					state->mode = IsDlgButtonChecked(hDlg, IDC_RADIO_RULE_VIETNAMESE) ? RULE_VIETNAMESE : RULE_ENGLISH;
+					EndDialog(hDlg, IDOK);
+					return TRUE;
+				}
+				case IDCANCEL:
+					EndDialog(hDlg, IDCANCEL);
+					return TRUE;
 			}
-			state->exe = state->exes[row];
-			state->mode = IsDlgButtonChecked(hDlg, IDC_RADIO_RULE_VIETNAMESE) ? RULE_VIETNAMESE : RULE_ENGLISH;
-			EndDialog(hDlg, IDOK);
-			return TRUE;
-		}
-		case IDCANCEL:
-			EndDialog(hDlg, IDCANCEL);
-			return TRUE;
-		}
-		break;
+			break;
 	}
 	return FALSE;
 }
@@ -106,39 +106,39 @@ static INT_PTR CALLBACK pickAppProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 /*---------------------- rules form ----------------------*/
 
 AppRulesDialog::AppRulesDialog(const HINSTANCE& instance, const int& resourceId)
-	: BaseDialog(instance, resourceId) {
+    : BaseDialog(instance, resourceId) {
 }
 
 INT_PTR AppRulesDialog::eventProc(HWND dialog, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
-	case WM_INITDIALOG:
-		hDlg = dialog;
-		initDialog();
-		return TRUE;
-	case WM_COMMAND:
-		switch (LOWORD(wParam)) {
-		case IDOK:
-		case IDCANCEL:
-			AppDelegate::getInstance()->closeDialog(this);
+		case WM_INITDIALOG:
+			hDlg = dialog;
+			initDialog();
+			return TRUE;
+		case WM_COMMAND:
+			switch (LOWORD(wParam)) {
+				case IDOK:
+				case IDCANCEL:
+					AppDelegate::getInstance()->closeDialog(this);
+					break;
+				case IDC_BUTTON_RULE_ADD:
+					onAdd();
+					break;
+				case IDC_BUTTON_RULE_TOGGLE:
+					onToggle();
+					break;
+				case IDC_BUTTON_RULE_DELETE:
+					onDelete();
+					break;
+			}
 			break;
-		case IDC_BUTTON_RULE_ADD:
-			onAdd();
-			break;
-		case IDC_BUTTON_RULE_TOGGLE:
-			onToggle();
-			break;
-		case IDC_BUTTON_RULE_DELETE:
-			onDelete();
+		case WM_NOTIFY: {
+			LPNMHDR header = (LPNMHDR)lParam;
+			if (header->idFrom == IDC_LIST_APP_RULES && header->code == NM_DBLCLK) {
+				onToggle();
+			}
 			break;
 		}
-		break;
-	case WM_NOTIFY: {
-		LPNMHDR header = (LPNMHDR)lParam;
-		if (header->idFrom == IDC_LIST_APP_RULES && header->code == NM_DBLCLK) {
-			onToggle();
-		}
-		break;
-	}
 	}
 	return FALSE;
 }

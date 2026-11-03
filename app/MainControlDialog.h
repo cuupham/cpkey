@@ -2,21 +2,24 @@
 #include "BaseDialog.h"
 
 class MainControlDialog : public BaseDialog {
-private:
+  private:
 	HWND comboBoxInputType;
 	HWND textSwitchKey;
 	bool advancedOpen = false;
-private:
+
+  private:
 	void initDialog();
 	void setAdvancedOpen(bool open);
 	void updateRulesButton();
 	void onCheckboxClicked(int controlId);
 	void onCharacter(const UINT16& keyCode);
-	void setSwitchKeyText(const UINT16 & keyCode);
+	void setSwitchKeyText(const UINT16& keyCode);
 	void requestRestartAsAdmin();
-protected:
+
+  protected:
 	INT_PTR eventProc(HWND dialog, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
-public:
+
+  public:
 	MainControlDialog(const HINSTANCE& instance, const int& resourceId);
 	void fillData() override;
 };

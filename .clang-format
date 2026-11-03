@@ -1,0 +1,16 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+ColumnLimit: 0
+PointerAlignment: Left
+SortIncludes: Never
+ReflowComments: Never
+AlignTrailingComments: false
+AlignConsecutiveMacros: Consecutive
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: true
+AllowShortBlocksOnASingleLine: Always
+AllowShortCaseLabelsOnASingleLine: true
+IndentCaseLabels: true
+Cpp11BracedListStyle: Block

@@ -9,7 +9,9 @@
 #define ADVANCED_BLOCK_HEIGHT 36
 
 static const int _advancedControls[] = {
-	IDC_CHECK_FIX_RECOMMEND_BROWSER, IDC_CHECK_FIX_CHROMIUM, IDC_CHECK_USE_CLIPBOARD,
+	IDC_CHECK_FIX_RECOMMEND_BROWSER,
+	IDC_CHECK_FIX_CHROMIUM,
+	IDC_CHECK_USE_CLIPBOARD,
 };
 
 // Controls below the advanced block; they move when it opens or closes.
@@ -67,7 +69,7 @@ static void setChecked(HWND hDlg, int controlId, bool checked) {
 }
 
 MainControlDialog::MainControlDialog(const HINSTANCE& instance, const int& resourceId)
-	: BaseDialog(instance, resourceId) {
+    : BaseDialog(instance, resourceId) {
 }
 
 void MainControlDialog::initDialog() {
@@ -117,57 +119,57 @@ void MainControlDialog::updateRulesButton() {
 
 INT_PTR MainControlDialog::eventProc(HWND dialog, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
-	case WM_INITDIALOG:
-		hDlg = dialog;
-		initDialog();
-		// Start on the default button so Enter closes the panel instead of hitting "Cài đặt gốc...".
-		SetFocus(GetDlgItem(hDlg, IDBUTTON_OK));
-		return FALSE;
-	case WM_COMMAND: {
-		int controlId = LOWORD(wParam);
-		switch (controlId) {
-		case IDBUTTON_OK:
-		case IDCANCEL:
-			AppDelegate::getInstance()->closeDialog(this);
-			break;
-		case IDC_BUTTON_APP_RULES:
-			AppDelegate::getInstance()->onAppRules();
-			break;
-		case IDC_BUTTON_QUICK_TYPING:
-			showQuickTypingDialog(hInstance, hDlg);
-			fillData();
-			break;
-		case IDC_BUTTON_ADVANCED:
-			setAdvancedOpen(!advancedOpen);
-			break;
-		case ID_BTN_DEFAULT:
-			if (MessageBox(hDlg, _T("Bạn có chắc chắn muốn thiết lập lại cài đặt gốc?"), APP_NAME,
-						   MB_ICONEXCLAMATION | MB_YESNO) == IDYES) {
-				AppDelegate::getInstance()->onDefaultConfig();
-			}
-			break;
-		case IDC_RADIO_METHOD_VIETNAMESE:
-			setBaseLanguage(1);
-			break;
-		case IDC_RADIO_METHOD_ENGLISH:
-			setBaseLanguage(0);
-			break;
-		default:
-			if (HIWORD(wParam) == CBN_SELCHANGE && controlId == IDC_COMBO_INPUT_TYPE) {
-				AppDelegate::getInstance()->onInputType((int)SendMessage(comboBoxInputType, CB_GETCURSEL, 0, 0));
-			} else if (HIWORD(wParam) == BN_CLICKED) {
-				onCheckboxClicked(controlId);
-			} else if (HIWORD(wParam) == EN_CHANGE && controlId == IDC_SWITCH_KEY_KEY) {
-				UINT16 keyCode = lastKeyCode;
-				if (keyCode > 0) {
-					lastKeyCode = 0;
-					onCharacter(keyCode);
-				}
+		case WM_INITDIALOG:
+			hDlg = dialog;
+			initDialog();
+			// Start on the default button so Enter closes the panel instead of hitting "Cài đặt gốc...".
+			SetFocus(GetDlgItem(hDlg, IDBUTTON_OK));
+			return FALSE;
+		case WM_COMMAND: {
+			int controlId = LOWORD(wParam);
+			switch (controlId) {
+				case IDBUTTON_OK:
+				case IDCANCEL:
+					AppDelegate::getInstance()->closeDialog(this);
+					break;
+				case IDC_BUTTON_APP_RULES:
+					AppDelegate::getInstance()->onAppRules();
+					break;
+				case IDC_BUTTON_QUICK_TYPING:
+					showQuickTypingDialog(hInstance, hDlg);
+					fillData();
+					break;
+				case IDC_BUTTON_ADVANCED:
+					setAdvancedOpen(!advancedOpen);
+					break;
+				case ID_BTN_DEFAULT:
+					if (MessageBox(hDlg, _T("Bạn có chắc chắn muốn thiết lập lại cài đặt gốc?"), APP_NAME,
+					               MB_ICONEXCLAMATION | MB_YESNO) == IDYES) {
+						AppDelegate::getInstance()->onDefaultConfig();
+					}
+					break;
+				case IDC_RADIO_METHOD_VIETNAMESE:
+					setBaseLanguage(1);
+					break;
+				case IDC_RADIO_METHOD_ENGLISH:
+					setBaseLanguage(0);
+					break;
+				default:
+					if (HIWORD(wParam) == CBN_SELCHANGE && controlId == IDC_COMBO_INPUT_TYPE) {
+						AppDelegate::getInstance()->onInputType((int)SendMessage(comboBoxInputType, CB_GETCURSEL, 0, 0));
+					} else if (HIWORD(wParam) == BN_CLICKED) {
+						onCheckboxClicked(controlId);
+					} else if (HIWORD(wParam) == EN_CHANGE && controlId == IDC_SWITCH_KEY_KEY) {
+						UINT16 keyCode = lastKeyCode;
+						if (keyCode > 0) {
+							lastKeyCode = 0;
+							onCharacter(keyCode);
+						}
+					}
+					break;
 			}
 			break;
 		}
-		break;
-	}
 	}
 	return FALSE;
 }
@@ -248,7 +250,7 @@ void MainControlDialog::setSwitchKeyText(const UINT16& keyCode) {
 void MainControlDialog::requestRestartAsAdmin() {
 	if (vRunAsAdmin && !IsUserAnAdmin()) {
 		if (MessageBox(hDlg, _T("Bạn cần khởi động lại để chạy với quyền Admin.\nKhởi động lại ngay bây giờ?"), APP_NAME,
-					   MB_ICONEXCLAMATION | MB_YESNO) == IDYES) {
+		               MB_ICONEXCLAMATION | MB_YESNO) == IDYES) {
 			// The elevated instance registers autostart again when it starts.
 			SystemHelper::registerRunOnStartup(false);
 			// Quit first: the new instance exits if it still finds this one running.

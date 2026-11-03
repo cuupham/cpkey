@@ -4,9 +4,9 @@
 #include "QuickTyping.h"
 #include "Settings.h"
 
-#define IMC_GETOPENSTATUS 0x0005
+#define IMC_GETOPENSTATUS    0x0005
 #define IME_QUERY_TIMEOUT_MS 50
-#define EMPTY_HOTKEY 0xFE0000FE
+#define EMPTY_HOTKEY         0xFE0000FE
 
 // Modifier state bits. Their numeric order matters: hotkey detection compares whole values.
 #define MASK_SHIFT   0x01
@@ -239,7 +239,7 @@ void keyHookInit() {
 	keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, keyboardHookProcess, hInstance, 0);
 	mouseHook = SetWindowsHookEx(WH_MOUSE_LL, mouseHookProcess, hInstance, 0);
 	foregroundHook = SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, NULL, foregroundEventProcess, 0, 0,
-									 WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
+	                                 WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
 }
 
 void keyHookFree() {
@@ -252,12 +252,16 @@ void keyHookFree() {
 
 static Uint32 modifierBit(Uint16 virtualKey) {
 	switch (virtualKey) {
-	case VK_LSHIFT: case VK_RSHIFT: return MASK_SHIFT;
-	case VK_LCONTROL: case VK_RCONTROL: return MASK_CONTROL;
-	case VK_LMENU: case VK_RMENU: return MASK_ALT;
-	case VK_LWIN: case VK_RWIN: return MASK_WIN;
-	case VK_NUMLOCK: return MASK_NUMLOCK;
-	case VK_SCROLL: return MASK_SCROLL;
+		case VK_LSHIFT:
+		case VK_RSHIFT: return MASK_SHIFT;
+		case VK_LCONTROL:
+		case VK_RCONTROL: return MASK_CONTROL;
+		case VK_LMENU:
+		case VK_RMENU: return MASK_ALT;
+		case VK_LWIN:
+		case VK_RWIN: return MASK_WIN;
+		case VK_NUMLOCK: return MASK_NUMLOCK;
+		case VK_SCROLL: return MASK_SCROLL;
 	}
 	return 0;
 }
@@ -299,8 +303,7 @@ static void switchLanguage() {
 static bool isImeOpen() {
 	HWND ime = ImmGetDefaultIMEWnd(GetForegroundWindow());
 	DWORD_PTR open = 0;
-	return ime && SendMessageTimeout(ime, WM_IME_CONTROL, IMC_GETOPENSTATUS, 0, SMTO_ABORTIFHUNG | SMTO_BLOCK,
-									 IME_QUERY_TIMEOUT_MS, &open) && open;
+	return ime && SendMessageTimeout(ime, WM_IME_CONTROL, IMC_GETOPENSTATUS, 0, SMTO_ABORTIFHUNG | SMTO_BLOCK, IME_QUERY_TIMEOUT_MS, &open) && open;
 }
 
 // Without the Vietnamese engine only quick typing is active.
@@ -328,7 +331,7 @@ static bool applyEngineResult() {
 	//fix autocomplete
 	if (vFixRecommendBrowser && engineState->extCode != 4) {
 		if (vFixChromiumBrowser &&
-			std::find(chromiumBrowsers.begin(), chromiumBrowsers.end(), SystemHelper::getLastAppExecuteName()) != chromiumBrowsers.end()) {
+		    std::find(chromiumBrowsers.begin(), chromiumBrowsers.end(), SystemHelper::getLastAppExecuteName()) != chromiumBrowsers.end()) {
 			sendCombo(KEY_LEFT_SHIFT, KEY_LEFT, 0, KEYEVENTF_EXTENDEDKEY);
 			if (engineState->backspaceCount == 1)
 				engineState->backspaceCount--;
@@ -430,18 +433,18 @@ static LRESULT CALLBACK keyboardHookProcess(int nCode, WPARAM wParam, LPARAM lPa
 
 static LRESULT CALLBACK mouseHookProcess(int nCode, WPARAM wParam, LPARAM lParam) {
 	switch (wParam) {
-	case WM_LBUTTONDOWN:
-	case WM_RBUTTONDOWN:
-	case WM_MBUTTONDOWN:
-	case WM_XBUTTONDOWN:
-	case WM_NCXBUTTONDOWN:
-	case WM_LBUTTONUP:
-	case WM_RBUTTONUP:
-	case WM_MBUTTONUP:
-	case WM_XBUTTONUP:
-	case WM_NCXBUTTONUP:
-		vKeyHandleEvent(vKeyEvent::Mouse, vKeyEventState::MouseDown, 0);
-		break;
+		case WM_LBUTTONDOWN:
+		case WM_RBUTTONDOWN:
+		case WM_MBUTTONDOWN:
+		case WM_XBUTTONDOWN:
+		case WM_NCXBUTTONDOWN:
+		case WM_LBUTTONUP:
+		case WM_RBUTTONUP:
+		case WM_MBUTTONUP:
+		case WM_XBUTTONUP:
+		case WM_NCXBUTTONUP:
+			vKeyHandleEvent(vKeyEvent::Mouse, vKeyEventState::MouseDown, 0);
+			break;
 	}
 	return CallNextHookEx(mouseHook, nCode, wParam, lParam);
 }

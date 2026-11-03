@@ -21,8 +21,9 @@ static vector<Uint8> _breakCode = {
     KEY_ESC, KEY_TAB, KEY_ENTER, KEY_RETURN, KEY_LEFT, KEY_RIGHT, KEY_DOWN, KEY_UP, KEY_COMMA, KEY_DOT,
     KEY_SLASH, KEY_SEMICOLON, KEY_QUOTE, KEY_BACK_SLASH, KEY_MINUS, KEY_EQUALS, KEY_BACKQUOTE, KEY_TAB
 #if _WIN32
-	, VK_INSERT, VK_HOME, VK_END, VK_DELETE, VK_PRIOR, VK_NEXT, VK_SNAPSHOT, VK_PRINT, VK_SELECT, VK_HELP,
-	VK_EXECUTE, VK_NUMLOCK, VK_SCROLL
+    ,
+    VK_INSERT, VK_HOME, VK_END, VK_DELETE, VK_PRIOR, VK_NEXT, VK_SNAPSHOT, VK_PRINT, VK_SELECT, VK_HELP,
+    VK_EXECUTE, VK_NUMLOCK, VK_SCROLL
 #endif
 };
 
@@ -31,38 +32,36 @@ static vector<Uint8> _macroBreakCode = {
 };
 
 static Uint16 ProcessingChar[][11] = {
-    {KEY_S, KEY_F, KEY_R, KEY_X, KEY_J, KEY_A, KEY_O, KEY_E, KEY_W, KEY_D, KEY_Z}, //Telex
-    {KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_6, KEY_7, KEY_8, KEY_9, KEY_0}, //VNI
-    {KEY_S, KEY_F, KEY_R, KEY_X, KEY_J, KEY_A, KEY_O, KEY_E, KEY_W, KEY_D, KEY_Z}, //Simple Telex 1
-    {KEY_S, KEY_F, KEY_R, KEY_X, KEY_J, KEY_A, KEY_O, KEY_E, KEY_W, KEY_D, KEY_Z} //Simple Telex 2
+    { KEY_S, KEY_F, KEY_R, KEY_X, KEY_J, KEY_A, KEY_O, KEY_E, KEY_W, KEY_D, KEY_Z }, //Telex
+    { KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_6, KEY_7, KEY_8, KEY_9, KEY_0 }, //VNI
+    { KEY_S, KEY_F, KEY_R, KEY_X, KEY_J, KEY_A, KEY_O, KEY_E, KEY_W, KEY_D, KEY_Z }, //Simple Telex 1
+    { KEY_S, KEY_F, KEY_R, KEY_X, KEY_J, KEY_A, KEY_O, KEY_E, KEY_W, KEY_D, KEY_Z } //Simple Telex 2
 };
 
-#define IS_KEY_Z(key) (ProcessingChar[vInputType][10] == key)
-#define IS_KEY_D(key) (ProcessingChar[vInputType][9] == key)
-#define IS_KEY_W(key) ((vInputType != vVNI) ? ProcessingChar[vInputType][8] == key : \
-                                    (vInputType == vVNI ? (ProcessingChar[vInputType][8] == key || ProcessingChar[vInputType][7] == key) : false))
-#define IS_KEY_DOUBLE(key) ((vInputType != vVNI) ? (ProcessingChar[vInputType][5] == key || ProcessingChar[vInputType][6] == key || ProcessingChar[vInputType][7] == key) :\
-                                        (vInputType == vVNI ? ProcessingChar[vInputType][6] == key : false))
-#define IS_KEY_S(key) (ProcessingChar[vInputType][0] == key)
-#define IS_KEY_F(key) (ProcessingChar[vInputType][1] == key)
-#define IS_KEY_R(key) (ProcessingChar[vInputType][2] == key)
-#define IS_KEY_X(key) (ProcessingChar[vInputType][3] == key)
-#define IS_KEY_J(key) (ProcessingChar[vInputType][4] == key)
+#define IS_KEY_Z(key)      (ProcessingChar[vInputType][10] == key)
+#define IS_KEY_D(key)      (ProcessingChar[vInputType][9] == key)
+#define IS_KEY_W(key)      ((vInputType != vVNI) ? ProcessingChar[vInputType][8] == key : (vInputType == vVNI ? (ProcessingChar[vInputType][8] == key || ProcessingChar[vInputType][7] == key) : false))
+#define IS_KEY_DOUBLE(key) ((vInputType != vVNI) ? (ProcessingChar[vInputType][5] == key || ProcessingChar[vInputType][6] == key || ProcessingChar[vInputType][7] == key) : (vInputType == vVNI ? ProcessingChar[vInputType][6] == key : false))
+#define IS_KEY_S(key)      (ProcessingChar[vInputType][0] == key)
+#define IS_KEY_F(key)      (ProcessingChar[vInputType][1] == key)
+#define IS_KEY_R(key)      (ProcessingChar[vInputType][2] == key)
+#define IS_KEY_X(key)      (ProcessingChar[vInputType][3] == key)
+#define IS_KEY_J(key)      (ProcessingChar[vInputType][4] == key)
 
 #define IS_MARK_KEY(keyCode) (((vInputType != vVNI) && (keyCode == KEY_S || keyCode == KEY_F || keyCode == KEY_R || keyCode == KEY_J || keyCode == KEY_X)) || \
-                                        (vInputType == vVNI && (keyCode == KEY_1 || keyCode == KEY_2 || keyCode == KEY_3 || keyCode == KEY_5 || keyCode == KEY_4)))
-#define IS_BRACKET_KEY(key) (key == KEY_LEFT_BRACKET || key == KEY_RIGHT_BRACKET)
+                              (vInputType == vVNI && (keyCode == KEY_1 || keyCode == KEY_2 || keyCode == KEY_3 || keyCode == KEY_5 || keyCode == KEY_4)))
+#define IS_BRACKET_KEY(key)  (key == KEY_LEFT_BRACKET || key == KEY_RIGHT_BRACKET)
 
-#define VSI vowelStartIndex
-#define VEI vowelEndIndex
-#define VWSM vowelWillSetMark
-#define hBPC HookState.backspaceCount
-#define hNCC HookState.newCharCount
-#define hCode HookState.code
-#define hExt HookState.extCode
-#define hData HookState.charData
-#define GET getCharacterCode
-#define hMacroKey HookState.macroKey
+#define VSI        vowelStartIndex
+#define VEI        vowelEndIndex
+#define VWSM       vowelWillSetMark
+#define hBPC       HookState.backspaceCount
+#define hNCC       HookState.newCharCount
+#define hCode      HookState.code
+#define hExt       HookState.extCode
+#define hData      HookState.charData
+#define GET        getCharacterCode
+#define hMacroKey  HookState.macroKey
 #define hMacroData HookState.macroData
 
 //Data to sendback to main program
@@ -118,9 +117,8 @@ static bool _useSpellCheckingBefore;
 static bool _willTempOffEngine = false;
 
 //function prototype
-void findAndCalculateVowel(const bool& forGrammar=false);
-void insertMark(const Uint32& markMask, const bool& canModifyFlag=true);
-
+void findAndCalculateVowel(const bool& forGrammar = false);
+void insertMark(const Uint32& markMask, const bool& canModifyFlag = true);
 
 void* vKeyInit() {
     _index = 0;
@@ -163,13 +161,13 @@ bool _spellingFlag = false;
 bool _spellingVowelOK = false;
 Byte _spellingEndIndex = 0;
 
-void checkSpelling(const bool& forceCheckVowel=false) {
+void checkSpelling(const bool& forceCheckVowel = false) {
     _spellingOK = false;
     _spellingVowelOK = true;
     _spellingEndIndex = _index;
 
-    if (_index > 0 && CHR(_index-1) == KEY_RIGHT_BRACKET) {
-        _spellingEndIndex = _index-1;
+    if (_index > 0 && CHR(_index - 1) == KEY_RIGHT_BRACKET) {
+        _spellingEndIndex = _index - 1;
     }
 
     if (_spellingEndIndex > 0) {
@@ -195,7 +193,7 @@ void checkSpelling(const bool& forceCheckVowel=false) {
             }
         }
 
-        if (j == _spellingEndIndex){ //for "d" case
+        if (j == _spellingEndIndex) { //for "d" case
             _spellingOK = true;
         }
 
@@ -203,7 +201,7 @@ void checkSpelling(const bool& forceCheckVowel=false) {
         k = j;
         VSI = k;
         //August 23rd, 2019: fix case "que't"
-        if (CHR(VSI) == KEY_U && k > 0 && k < _spellingEndIndex-1 && CHR(VSI-1) == KEY_Q) {
+        if (CHR(VSI) == KEY_U && k > 0 && k < _spellingEndIndex - 1 && CHR(VSI - 1) == KEY_Q) {
             k = k + 1;
             j = k;
             VSI = k;
@@ -244,7 +242,7 @@ void checkSpelling(const bool& forceCheckVowel=false) {
                 _spellingFlag = false;
 
                 for (j = 0; j < _endConsonantTable[ii].size(); j++) {
-                    if (_spellingEndIndex > k+j &&
+                    if (_spellingEndIndex > k + j &&
                         _endConsonantTable[ii][j] != CHR(k + j)) {
                         _spellingFlag = true;
                         break;
@@ -261,9 +259,9 @@ void checkSpelling(const bool& forceCheckVowel=false) {
 
             //limit: end consonant "ch", "t" can not use with "~", "`", "?"
             if (_spellingOK) {
-                if (_index >= 3 && CHR(_index-1) == KEY_H && CHR(_index-2) == KEY_C && !((TypingWord[_index-3] & MARK1_MASK) || (TypingWord[_index-3] & MARK5_MASK) || !(TypingWord[_index-3] & MARK_MASK))) {
+                if (_index >= 3 && CHR(_index - 1) == KEY_H && CHR(_index - 2) == KEY_C && !((TypingWord[_index - 3] & MARK1_MASK) || (TypingWord[_index - 3] & MARK5_MASK) || !(TypingWord[_index - 3] & MARK_MASK))) {
                     _spellingOK = false;
-                } else if (_index >= 2 && CHR(_index-1) == KEY_T && !((TypingWord[_index-2] & MARK1_MASK) || (TypingWord[_index-2] & MARK5_MASK) || !(TypingWord[_index-2] & MARK_MASK))) {
+                } else if (_index >= 2 && CHR(_index - 1) == KEY_T && !((TypingWord[_index - 2] & MARK1_MASK) || (TypingWord[_index - 2] & MARK5_MASK) || !(TypingWord[_index - 2] & MARK_MASK))) {
                     _spellingOK = false;
                 }
             }
@@ -291,11 +289,11 @@ void checkGrammar(const int& deltaBackSpace) {
 
     //if N key for case: "thuơn", "ưoi", "ưom", "ưoc"
     if (_index >= 3) {
-        for (i = _index-1; i >= 0; i--) {
+        for (i = _index - 1; i >= 0; i--) {
             if (CHR(i) == KEY_N || CHR(i) == KEY_C || CHR(i) == KEY_I ||
                 CHR(i) == KEY_M || CHR(i) == KEY_P || CHR(i) == KEY_T) {
                 if (i - 2 >= 0 && CHR(i - 1) == KEY_O && CHR(i - 2) == KEY_U) {
-                    if ((TypingWord[i-1] & TONEW_MASK) ^ (TypingWord[i-2] & TONEW_MASK)) {
+                    if ((TypingWord[i - 1] & TONEW_MASK) ^ (TypingWord[i - 2] & TONEW_MASK)) {
                         TypingWord[i - 2] |= TONEW_MASK;
                         TypingWord[i - 1] |= TONEW_MASK;
                         isCheckedGrammar = true;
@@ -322,7 +320,7 @@ void checkGrammar(const int& deltaBackSpace) {
 
     //re-arrange data to sendback
     if (isCheckedGrammar) {
-        if (hCode ==vDoNothing)
+        if (hCode == vDoNothing)
             hCode = vWillProcess;
         hBPC = 0;
 
@@ -336,14 +334,14 @@ void checkGrammar(const int& deltaBackSpace) {
     }
 }
 
-void insertKey(const Uint16& keyCode, const bool& isCaps, const bool& isCheckSpelling=true) {
+void insertKey(const Uint16& keyCode, const bool& isCaps, const bool& isCheckSpelling = true) {
     if (_index >= MAX_BUFF) {
         _longWordHelper.push_back(TypingWord[0]); //save long word
         //left shift
         for (iii = 0; iii < MAX_BUFF - 1; iii++) {
             TypingWord[iii] = TypingWord[iii + 1];
         }
-        setKeyData(_index-1, keyCode, isCaps);
+        setKeyData(_index - 1, keyCode, isCaps);
     } else {
         setKeyData(_index++, keyCode, isCaps);
     }
@@ -362,7 +360,7 @@ void insertState(const Uint16& keyCode, const bool& isCaps) {
         for (iii = 0; iii < MAX_BUFF - 1; iii++) {
             KeyStates[iii] = KeyStates[iii + 1];
         }
-        KeyStates[_stateIndex-1] = keyCode | (isCaps ? CAPS_MASK : 0);
+        KeyStates[_stateIndex - 1] = keyCode | (isCaps ? CAPS_MASK : 0);
     } else {
         KeyStates[_stateIndex++] = keyCode | (isCaps ? CAPS_MASK : 0);
     }
@@ -426,7 +424,7 @@ void restoreLastTypingState() {
     if (_typingStates.size() > 0) {
         _typingStatesData = _typingStates.back();
         _typingStates.pop_back();
-        if (_typingStatesData.size() > 0){
+        if (_typingStatesData.size() > 0) {
             if (_typingStatesData[0] == KEY_SPACE) {
                 _spaceCount = (int)_typingStatesData.size();
                 _index = 0;
@@ -456,7 +454,7 @@ void startNewSession() {
 
 void checkCorrectVowel(vector<vector<Uint16>>& charset, int& i, int& k, const Uint16& markKey) {
     //ignore "qu" case
-    if (_index >= 2 && CHR(_index-1) == KEY_U && CHR(_index-2) == KEY_Q) {
+    if (_index >= 2 && CHR(_index - 1) == KEY_U && CHR(_index - 2) == KEY_Q) {
         isCorect = false;
         return;
     }
@@ -481,7 +479,7 @@ void checkCorrectVowel(vector<vector<Uint16>>& charset, int& i, int& k, const Ui
     }
 
     if (isCorect && k >= 0) {
-        if (CHR(k) == CHR(k+1)) {
+        if (CHR(k) == CHR(k + 1)) {
             isCorect = false;
         }
     }
@@ -553,12 +551,12 @@ void findAndCalculateVowel(const bool& forGrammar) {
         if (IS_CONSONANT(CHR(iii))) {
             if (vowelCount > 0)
                 break;
-        } else {  //is vowel
+        } else { //is vowel
             if (vowelCount == 0)
                 VEI = iii;
             if (!forGrammar) {
-                if ((iii-1 >= 0 && (CHR(iii) == KEY_I && CHR(iii-1) == KEY_G)) ||
-                    (iii-1 >= 0 && (CHR(iii) == KEY_U && CHR(iii-1) == KEY_Q))) {
+                if ((iii - 1 >= 0 && (CHR(iii) == KEY_I && CHR(iii - 1) == KEY_G)) ||
+                    (iii - 1 >= 0 && (CHR(iii) == KEY_U && CHR(iii - 1) == KEY_Q))) {
                     break;
                 }
             }
@@ -567,7 +565,7 @@ void findAndCalculateVowel(const bool& forGrammar) {
         }
     }
     //August 26th, 2019: don't count "u" at "q u" as a vowel
-    if (VSI - 1 >= 0 && CHR(VSI) == KEY_U && CHR(VSI-1) == KEY_Q) {
+    if (VSI - 1 >= 0 && CHR(VSI) == KEY_U && CHR(VSI - 1) == KEY_Q) {
         VSI++;
         vowelCount--;
     }
@@ -621,25 +619,25 @@ void handleModernMark() {
     hBPC = (_index - VEI);
 
     //rule 2
-    if (vowelCount == 3 && ((CHR(VSI) == KEY_O && CHR(VSI+1) == KEY_A && CHR(VSI+2) == KEY_I) ||
-                            (CHR(VSI) == KEY_U && CHR(VSI+1) == KEY_Y && CHR(VSI+2) == KEY_U) ||
-                            (CHR(VSI) == KEY_O && CHR(VSI+1) == KEY_E && CHR(VSI+2) == KEY_O) ||
-                            (CHR(VSI) == KEY_U && CHR(VSI+1) == KEY_Y && CHR(VSI+2) == KEY_A))) {
+    if (vowelCount == 3 && ((CHR(VSI) == KEY_O && CHR(VSI + 1) == KEY_A && CHR(VSI + 2) == KEY_I) ||
+                            (CHR(VSI) == KEY_U && CHR(VSI + 1) == KEY_Y && CHR(VSI + 2) == KEY_U) ||
+                            (CHR(VSI) == KEY_O && CHR(VSI + 1) == KEY_E && CHR(VSI + 2) == KEY_O) ||
+                            (CHR(VSI) == KEY_U && CHR(VSI + 1) == KEY_Y && CHR(VSI + 2) == KEY_A))) {
         VWSM = VSI + 1;
         hBPC = _index - VWSM;
-    } else if ((CHR(VSI) == KEY_O && CHR(VSI+1) == KEY_I) ||
-               (CHR(VSI) == KEY_A && CHR(VSI+1) == KEY_I) ||
-               (CHR(VSI)== KEY_U && CHR(VSI+1) == KEY_I) ) {
+    } else if ((CHR(VSI) == KEY_O && CHR(VSI + 1) == KEY_I) ||
+               (CHR(VSI) == KEY_A && CHR(VSI + 1) == KEY_I) ||
+               (CHR(VSI) == KEY_U && CHR(VSI + 1) == KEY_I)) {
 
         VWSM = VSI;
         hBPC = _index - VWSM;
-    } else if (CHR(VEI-1) == KEY_A && CHR(VEI) == KEY_Y) {
+    } else if (CHR(VEI - 1) == KEY_A && CHR(VEI) == KEY_Y) {
         VWSM = VEI - 1;
         hBPC = (_index - VEI) + 1;
-    } else if (CHR(VSI) == KEY_U && CHR(VSI+1) == KEY_O) {
+    } else if (CHR(VSI) == KEY_U && CHR(VSI + 1) == KEY_O) {
         VWSM = VSI + 1;
         hBPC = _index - VWSM;
-    } else if (CHR(VSI+1) == KEY_O || CHR(VSI+1) == KEY_U) {
+    } else if (CHR(VSI + 1) == KEY_O || CHR(VSI + 1) == KEY_U) {
         VWSM = VEI - 1;
         hBPC = (_index - VEI) + 1;
     } else if (CHR(VSI) == KEY_O || CHR(VSI) == KEY_U) {
@@ -648,19 +646,19 @@ void handleModernMark() {
     }
 
     //rule 3.1
-    if ((CHR(VSI) == KEY_I && (TypingWord[VSI+1] & (KEY_E | TONE_MASK))) ||
-        (CHR(VSI) == KEY_Y && (TypingWord[VSI+1] & (KEY_E | TONE_MASK))) ||
-        (CHR(VSI) == KEY_U && (TypingWord[VSI+1] == (KEY_O | TONE_MASK))) ||
-        ((TypingWord[VSI] == (KEY_U | TONEW_MASK)) && (TypingWord[VSI+1] == (KEY_O | TONEW_MASK)))){
+    if ((CHR(VSI) == KEY_I && (TypingWord[VSI + 1] & (KEY_E | TONE_MASK))) ||
+        (CHR(VSI) == KEY_Y && (TypingWord[VSI + 1] & (KEY_E | TONE_MASK))) ||
+        (CHR(VSI) == KEY_U && (TypingWord[VSI + 1] == (KEY_O | TONE_MASK))) ||
+        ((TypingWord[VSI] == (KEY_U | TONEW_MASK)) && (TypingWord[VSI + 1] == (KEY_O | TONEW_MASK)))) {
 
-        if (VSI+2 < _index) {
-            if (CHR(VSI+2) == KEY_P || CHR(VSI+2) == KEY_T ||
-                CHR(VSI+2) == KEY_M || CHR(VSI+2) == KEY_N ||
-                CHR(VSI+2) == KEY_O || CHR(VSI+2) == KEY_U ||
-                CHR(VSI+2) == KEY_I || CHR(VSI+2) == KEY_C ||
-                (VSI+3 < _index && CHR(VSI+2) == KEY_C && CHR(VSI+2) == KEY_H) ||
-                (VSI+3 < _index && CHR(VSI+2) == KEY_N && CHR(VSI+2) == KEY_H) ||
-                (VSI+3 < _index && CHR(VSI+2) == KEY_N && CHR(VSI+2) == KEY_G)) {
+        if (VSI + 2 < _index) {
+            if (CHR(VSI + 2) == KEY_P || CHR(VSI + 2) == KEY_T ||
+                CHR(VSI + 2) == KEY_M || CHR(VSI + 2) == KEY_N ||
+                CHR(VSI + 2) == KEY_O || CHR(VSI + 2) == KEY_U ||
+                CHR(VSI + 2) == KEY_I || CHR(VSI + 2) == KEY_C ||
+                (VSI + 3 < _index && CHR(VSI + 2) == KEY_C && CHR(VSI + 2) == KEY_H) ||
+                (VSI + 3 < _index && CHR(VSI + 2) == KEY_N && CHR(VSI + 2) == KEY_H) ||
+                (VSI + 3 < _index && CHR(VSI + 2) == KEY_N && CHR(VSI + 2) == KEY_G)) {
 
                 VWSM = VSI + 1;
                 hBPC = _index - VWSM;
@@ -677,7 +675,7 @@ void handleModernMark() {
     else if ((CHR(VSI) == KEY_I && (CHR(VSI) == KEY_A)) ||
              (CHR(VSI) == KEY_Y && (CHR(VSI) == KEY_A)) ||
              (CHR(VSI) == KEY_U && (CHR(VSI) == KEY_A)) ||
-             (CHR(VSI) == KEY_U && (TypingWord[VSI+1] == (KEY_U | TONEW_MASK)))){
+             (CHR(VSI) == KEY_U && (TypingWord[VSI + 1] == (KEY_U | TONEW_MASK)))) {
 
         VWSM = VSI;
         hBPC = _index - VWSM;
@@ -685,19 +683,19 @@ void handleModernMark() {
 
     //rule 4
     if (vowelCount == 2) {
-        if (((CHR(VSI) == KEY_I) && (CHR(VSI+1) == KEY_A)) ||
-            ((CHR(VSI) == KEY_I) && (CHR(VSI+1) == KEY_U)) ||
-            ((CHR(VSI) == KEY_I) && (CHR(VSI+1) == KEY_O))) {
+        if (((CHR(VSI) == KEY_I) && (CHR(VSI + 1) == KEY_A)) ||
+            ((CHR(VSI) == KEY_I) && (CHR(VSI + 1) == KEY_U)) ||
+            ((CHR(VSI) == KEY_I) && (CHR(VSI + 1) == KEY_O))) {
 
-            if (VSI == 0 || (CHR(VSI-1) != KEY_G)) { //dont have G
+            if (VSI == 0 || (CHR(VSI - 1) != KEY_G)) { //dont have G
                 VWSM = VSI;
                 hBPC = _index - VWSM;
             } else {
                 VWSM = VSI + 1;
                 hBPC = _index - VWSM;
             }
-        } else if ((CHR(VSI) == KEY_U) && (CHR(VSI+1) == KEY_A)) {
-            if (VSI == 0 || (CHR(VSI-1) != KEY_Q)) { //dont have Q
+        } else if ((CHR(VSI) == KEY_U) && (CHR(VSI + 1) == KEY_A)) {
+            if (VSI == 0 || (CHR(VSI - 1) != KEY_Q)) { //dont have Q
                 if (VEI + 1 >= _index || !canHasEndConsonant()) {
                     VWSM = VSI;
                     hBPC = _index - VWSM;
@@ -706,7 +704,7 @@ void handleModernMark() {
                 VWSM = VSI + 1;
                 hBPC = _index - VWSM;
             }
-        } else if ((CHR(VSI) == KEY_O) && (CHR(VSI+1) == KEY_O)) { //thoong
+        } else if ((CHR(VSI) == KEY_O) && (CHR(VSI + 1) == KEY_O)) { //thoong
             VWSM = VEI;
             hBPC = _index - VWSM;
         }
@@ -847,7 +845,6 @@ void insertAOE(const Uint16& data, const bool& isCaps) {
                 if (!IS_KEY_D(data))
                     TypingWord[ii] &= ~TONEW_MASK;
                 hData[_index - 1 - ii] = GET(TypingWord[ii]);
-
             }
             break;
         } else { //preresent old char
@@ -871,9 +868,9 @@ void insertW(const Uint16& data, const bool& isCaps) {
         hBPC = _index - VSI;
         hNCC = hBPC;
 
-        if (((TypingWord[VSI] & TONEW_MASK) && (TypingWord[VSI+1] & TONEW_MASK)) ||
-            ((TypingWord[VSI] & TONEW_MASK) && CHR(VSI+1) == KEY_I) ||
-            ((TypingWord[VSI] & TONEW_MASK) && CHR(VSI+1) == KEY_A)){
+        if (((TypingWord[VSI] & TONEW_MASK) && (TypingWord[VSI + 1] & TONEW_MASK)) ||
+            ((TypingWord[VSI] & TONEW_MASK) && CHR(VSI + 1) == KEY_I) ||
+            ((TypingWord[VSI] & TONEW_MASK) && CHR(VSI + 1) == KEY_A)) {
             //restore and disable temporary
             hCode = vRestore;
 
@@ -886,26 +883,26 @@ void insertW(const Uint16& data, const bool& isCaps) {
         } else {
             hCode = vWillProcess;
 
-            if ((CHR(VSI) == KEY_U && CHR(VSI+1) == KEY_O)) {
+            if ((CHR(VSI) == KEY_U && CHR(VSI + 1) == KEY_O)) {
                 if (VSI - 2 >= 0 && TypingWord[VSI - 2] == KEY_T && TypingWord[VSI - 1] == KEY_H) {
-                    TypingWord[VSI+1] |= TONEW_MASK;
-                    if (VSI + 2 < _index && CHR(VSI+2) == KEY_N) {
+                    TypingWord[VSI + 1] |= TONEW_MASK;
+                    if (VSI + 2 < _index && CHR(VSI + 2) == KEY_N) {
                         TypingWord[VSI] |= TONEW_MASK;
                     }
                 } else if (VSI - 1 >= 0 && TypingWord[VSI - 1] == KEY_Q) {
-                    TypingWord[VSI+1] |= TONEW_MASK;
+                    TypingWord[VSI + 1] |= TONEW_MASK;
                 } else {
                     TypingWord[VSI] |= TONEW_MASK;
-                    TypingWord[VSI+1] |= TONEW_MASK;
+                    TypingWord[VSI + 1] |= TONEW_MASK;
                 }
-            } else if ((CHR(VSI) == KEY_U && CHR(VSI+1) == KEY_A) ||
-                       (CHR(VSI) == KEY_U && CHR(VSI+1) == KEY_I) ||
-                       (CHR(VSI) == KEY_U && CHR(VSI+1) == KEY_U) ||
-                       (CHR(VSI) == KEY_O && CHR(VSI+1) == KEY_I)) {
+            } else if ((CHR(VSI) == KEY_U && CHR(VSI + 1) == KEY_A) ||
+                       (CHR(VSI) == KEY_U && CHR(VSI + 1) == KEY_I) ||
+                       (CHR(VSI) == KEY_U && CHR(VSI + 1) == KEY_U) ||
+                       (CHR(VSI) == KEY_O && CHR(VSI + 1) == KEY_I)) {
                 TypingWord[VSI] |= TONEW_MASK;
-            } else if ((CHR(VSI) == KEY_I && CHR(VSI+1) == KEY_O) ||
-                       (CHR(VSI) == KEY_O && CHR(VSI+1) == KEY_A)) {
-                TypingWord[VSI+1] |= TONEW_MASK;
+            } else if ((CHR(VSI) == KEY_I && CHR(VSI + 1) == KEY_O) ||
+                       (CHR(VSI) == KEY_O && CHR(VSI + 1) == KEY_A)) {
+                TypingWord[VSI + 1] |= TONEW_MASK;
             } else {
                 //don't do anything
                 tempDisableKey = true;
@@ -936,7 +933,7 @@ void insertW(const Uint16& data, const bool& isCaps) {
                     //restore and disable temporary
                     if (TypingWord[ii] & STANDALONE_MASK) {
                         hCode = vWillProcess;
-                        if (CHR(ii) == KEY_U){
+                        if (CHR(ii) == KEY_U) {
                             TypingWord[ii] = KEY_W | ((TypingWord[ii] & CAPS_MASK) ? CAPS_MASK : 0);
                         } else if (CHR(ii) == KEY_O) {
                             hCode = vRestore;
@@ -993,7 +990,7 @@ void checkForStandaloneChar(const Uint16& data, const bool& isCaps, const Uint32
 
     //check standalone w -> ư
 
-    if (_index > 0 && CHR(_index-1) == KEY_U && keyWillReverse == KEY_O) {
+    if (_index > 0 && CHR(_index - 1) == KEY_U && keyWillReverse == KEY_O) {
         insertKey(keyWillReverse, isCaps);
         reverseLastStandaloneChar(keyWillReverse, isCaps);
         return;
@@ -1073,7 +1070,7 @@ void handleMainKey(const Uint16& data, const bool& isCaps) {
             checkCorrectVowel(_consonantD, i, k, data);
 
             //allow d after consonant
-            if (!isCorect && _index - 2 >= 0 && CHR(_index-1) == KEY_D && IS_CONSONANT(CHR(_index-2))) {
+            if (!isCorect && _index - 2 >= 0 && CHR(_index - 1) == KEY_D && IS_CONSONANT(CHR(_index - 2))) {
                 isCorect = true;
             }
             if (isCorect) {
@@ -1132,7 +1129,7 @@ void handleMainKey(const Uint16& data, const bool& isCaps) {
 
     //check Vowel
     if (vInputType == vVNI) {
-        for (i = _index-1; i >= 0; i--) {
+        for (i = _index - 1; i >= 0; i--) {
             if (CHR(i) == KEY_O || CHR(i) == KEY_A || CHR(i) == KEY_E) {
                 VEI = i;
                 break;
@@ -1157,13 +1154,13 @@ void handleMainKey(const Uint16& data, const bool& isCaps) {
                 insertAOE(keyForAEO, isCaps);
             } else if (IS_KEY_W(data)) {
                 if (vInputType == vVNI) {
-                    for (j = _index-1; j >= 0; j--) {
-                        if (CHR(j) == KEY_O || CHR(j) == KEY_U ||CHR(j) == KEY_A || CHR(j) == KEY_E) {
+                    for (j = _index - 1; j >= 0; j--) {
+                        if (CHR(j) == KEY_O || CHR(j) == KEY_U || CHR(j) == KEY_A || CHR(j) == KEY_E) {
                             VEI = j;
                             break;
                         }
                     }
-                    if ((data == KEY_7 && CHR(VEI) == KEY_A && (VEI-1>=0 ? CHR(VEI-1) != KEY_U : true)) || (data == KEY_8 && (CHR(VEI) == KEY_O || CHR(VEI) == KEY_U)))
+                    if ((data == KEY_7 && CHR(VEI) == KEY_A && (VEI - 1 >= 0 ? CHR(VEI - 1) != KEY_U : true)) || (data == KEY_8 && (CHR(VEI) == KEY_O || CHR(VEI) == KEY_U)))
                         break;
                 }
                 insertW(keyForAEO, isCaps);
@@ -1253,8 +1250,7 @@ void vKeyHandleEvent(const vKeyEvent& event,
                      const bool& otherControlKey) {
     _isCaps = (capsStatus == 1 || //shift
                capsStatus == 2); //caps lock
-    if ((IS_NUMBER_KEY(data) && capsStatus == 1)
-        || otherControlKey || isWordBreak(event, state, data) || (_index == 0 && IS_NUMBER_KEY(data))) {
+    if ((IS_NUMBER_KEY(data) && capsStatus == 1) || otherControlKey || isWordBreak(event, state, data) || (_index == 0 && IS_NUMBER_KEY(data))) {
         hCode = vDoNothing;
         hBPC = 0;
         hNCC = 0;
@@ -1286,7 +1282,7 @@ void vKeyHandleEvent(const vKeyEvent& event,
                 saveWord();
             }
             _specialChar.push_back(data | (_isCaps ? CAPS_MASK : 0));
-            hExt = 3;//normal word
+            hExt = 3; //normal word
         }
 
         if (hCode == vDoNothing) {
@@ -1365,12 +1361,12 @@ void vKeyHandleEvent(const vKeyEvent& event,
             if (_stateIndex > 0) {
                 _stateIndex--;
             }
-            if (_index > 0){
+            if (_index > 0) {
                 _index--;
                 if (_longWordHelper.size() > 0) {
                     //right shift
                     for (i = MAX_BUFF - 1; i > 0; i--) {
-                        TypingWord[i] = TypingWord[i-1];
+                        TypingWord[i] = TypingWord[i - 1];
                     }
                     TypingWord[0] = _longWordHelper.back();
                     _longWordHelper.pop_back();
@@ -1464,7 +1460,7 @@ void vKeyHandleEvent(const vKeyEvent& event,
         }
 
         //case [ ]
-        if (IS_BRACKET_KEY(data) && (( IS_BRACKET_KEY((Uint16)hData[0])) || vInputType == vSimpleTelex1 || vInputType == vSimpleTelex2)) {
+        if (IS_BRACKET_KEY(data) && ((IS_BRACKET_KEY((Uint16)hData[0])) || vInputType == vSimpleTelex1 || vInputType == vSimpleTelex2)) {
             if (_index - (hCode == vWillProcess ? hBPC : 0) > 0) {
                 _index--;
                 saveWord();

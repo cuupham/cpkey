@@ -2,14 +2,16 @@
 #include "stdafx.h"
 
 class BaseDialog {
-protected:
+  protected:
 	UINT resId;
 	HINSTANCE hInstance;
 	HWND hDlg;
-protected:
+
+  protected:
 	virtual INT_PTR eventProc(HWND dialog, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
 	void setDialogIcon();
-public:
+
+  public:
 	BaseDialog(const HINSTANCE& instance, const int& resourceId);
 	virtual ~BaseDialog() {}
 	void show();

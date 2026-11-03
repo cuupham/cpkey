@@ -1,67 +1,67 @@
 #include "SystemTrayHelper.h"
 #include "AppDelegate.h"
 
-#define WM_TRAYMESSAGE (WM_USER + 1)
+#define WM_TRAYMESSAGE        (WM_USER + 1)
 #define WM_SHOW_CONTROL_PANEL (WM_USER + 2019)
-#define TRAY_ICONUID 100
+#define TRAY_ICONUID          100
 
 #define POPUP_VIET_ON_OFF 900
-#define POPUP_SPELLING 901
+#define POPUP_SPELLING    901
 
-#define POPUP_TELEX 910
-#define POPUP_VNI 911
+#define POPUP_TELEX        910
+#define POPUP_VNI          911
 #define POPUP_SIMPLE_TELEX 912
 
-#define POPUP_APP_RULES 990
+#define POPUP_APP_RULES     990
 #define POPUP_CONTROL_PANEL 1000
-#define POPUP_EXIT 2000
+#define POPUP_EXIT          2000
 
-#define MODIFY_MENU(MENU, COMMAND, DATA) ModifyMenu(MENU, COMMAND, \
-											MF_BYCOMMAND | (DATA ? MF_CHECKED : MF_UNCHECKED), \
-											COMMAND, \
-											menuData[COMMAND]);
+#define MODIFY_MENU(MENU, COMMAND, DATA) ModifyMenu(MENU, COMMAND,                                     \
+                                                    MF_BYCOMMAND | (DATA ? MF_CHECKED : MF_UNCHECKED), \
+                                                    COMMAND,                                           \
+                                                    menuData[COMMAND]);
 
 static HMENU popupMenu;
 static NOTIFYICONDATA nid;
 
 static map<UINT, LPCTSTR> menuData = {
-	{POPUP_VIET_ON_OFF, _T("Bật Tiếng Việt")},
-	{POPUP_SPELLING, _T("Bật kiểm tra chính tả")},
-	{POPUP_TELEX, _T("Kiểu gõ Telex")},
-	{POPUP_VNI, _T("Kiểu gõ VNI")},
-	{POPUP_SIMPLE_TELEX, _T("Kiểu gõ Simple Telex")},
-	{POPUP_APP_RULES, _T("Cấu hình theo ứng dụng...")},
-	{POPUP_CONTROL_PANEL, _T("Bảng điều khiển...")},
-	{POPUP_EXIT, _T("Thoát")},
+	{ POPUP_VIET_ON_OFF, _T("Bật Tiếng Việt") },
+	{ POPUP_SPELLING, _T("Bật kiểm tra chính tả") },
+	{ POPUP_TELEX, _T("Kiểu gõ Telex") },
+	{ POPUP_VNI, _T("Kiểu gõ VNI") },
+	{ POPUP_SIMPLE_TELEX, _T("Kiểu gõ Simple Telex") },
+	{ POPUP_APP_RULES, _T("Cấu hình theo ứng dụng...") },
+	{ POPUP_CONTROL_PANEL, _T("Bảng điều khiển...") },
+	{ POPUP_EXIT, _T("Thoát") },
 };
 
 static void onTrayMenuCommand(UINT commandId) {
 	AppDelegate* app = AppDelegate::getInstance();
 	switch (commandId) {
-	case POPUP_VIET_ON_OFF:
-		app->onToggleVietnamese();
-		break;
-	case POPUP_SPELLING:
-		app->onToggleCheckSpelling();
-		break;
-	case POPUP_TELEX:
-		app->onInputType(0);
-		break;
-	case POPUP_VNI:
-		app->onInputType(1);
-		break;
-	case POPUP_SIMPLE_TELEX:
-		app->onInputType(2);
-		break;
-	case POPUP_APP_RULES:
-		app->onAppRules();
-		break;
-	case POPUP_CONTROL_PANEL:
-		app->onControlPanel();
-		break;
-	case POPUP_EXIT:
-		app->onExit();
-		break;
+		case POPUP_VIET_ON_OFF:
+			app->onToggleVietnamese();
+			break;
+		case POPUP_SPELLING:
+			app->onToggleCheckSpelling();
+			break;
+		case POPUP_TELEX:
+			app->onInputType(0);
+			break;
+		case POPUP_VNI:
+			app->onInputType(1);
+			break;
+		case POPUP_SIMPLE_TELEX:
+			app->onInputType(2);
+			break;
+		case POPUP_APP_RULES:
+			app->onAppRules();
+			break;
+		case POPUP_CONTROL_PANEL:
+			app->onControlPanel();
+			break;
+		case POPUP_EXIT:
+			app->onExit();
+			break;
 	}
 }
 
@@ -69,37 +69,37 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 	static UINT taskbarCreated;
 
 	switch (message) {
-	case WM_CREATE:
-		taskbarCreated = RegisterWindowMessage(_T("TaskbarCreated"));
-		break;
-	case WM_SHOW_CONTROL_PANEL:
-		AppDelegate::getInstance()->onControlPanel();
-		break;
-	case WM_TRAYMESSAGE:
-		if (lParam == WM_LBUTTONDBLCLK) {
+		case WM_CREATE:
+			taskbarCreated = RegisterWindowMessage(_T("TaskbarCreated"));
+			break;
+		case WM_SHOW_CONTROL_PANEL:
 			AppDelegate::getInstance()->onControlPanel();
-		} else if (lParam == WM_LBUTTONUP) {
-			AppDelegate::getInstance()->onToggleVietnamese();
-		} else if (lParam == WM_RBUTTONDOWN) {
-			POINT curPoint;
-			GetCursorPos(&curPoint);
-			SetForegroundWindow(hWnd);
-			UINT commandId = TrackPopupMenu(popupMenu, TPM_RETURNCMD | TPM_NONOTIFY, curPoint.x, curPoint.y, 0, hWnd, NULL);
-			onTrayMenuCommand(commandId);
-			SystemTrayHelper::updateData();
-		}
-		break;
-	default:
-		// if the taskbar is restarted, add the system tray icon again
-		if (message == taskbarCreated) {
-			Shell_NotifyIcon(NIM_ADD, &nid);
-		}
-		return DefWindowProc(hWnd, message, wParam, lParam);
+			break;
+		case WM_TRAYMESSAGE:
+			if (lParam == WM_LBUTTONDBLCLK) {
+				AppDelegate::getInstance()->onControlPanel();
+			} else if (lParam == WM_LBUTTONUP) {
+				AppDelegate::getInstance()->onToggleVietnamese();
+			} else if (lParam == WM_RBUTTONDOWN) {
+				POINT curPoint;
+				GetCursorPos(&curPoint);
+				SetForegroundWindow(hWnd);
+				UINT commandId = TrackPopupMenu(popupMenu, TPM_RETURNCMD | TPM_NONOTIFY, curPoint.x, curPoint.y, 0, hWnd, NULL);
+				onTrayMenuCommand(commandId);
+				SystemTrayHelper::updateData();
+			}
+			break;
+		default:
+			// if the taskbar is restarted, add the system tray icon again
+			if (message == taskbarCreated) {
+				Shell_NotifyIcon(NIM_ADD, &nid);
+			}
+			return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 	return 0;
 }
 
-HWND SystemTrayHelper::createFakeWindow(const HINSTANCE & hIns) {
+HWND SystemTrayHelper::createFakeWindow(const HINSTANCE& hIns) {
 	WNDCLASSEXW wcex = { 0 };
 	wcex.cbSize = sizeof(WNDCLASSEX);
 	wcex.lpfnWndProc = WndProc;
@@ -109,7 +109,7 @@ HWND SystemTrayHelper::createFakeWindow(const HINSTANCE & hIns) {
 	wcex.lpszClassName = APP_CLASS;
 	RegisterClassExW(&wcex);
 	HWND hWnd = CreateWindowW(APP_CLASS, _T(""), WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hIns, nullptr);
+	                          CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hIns, nullptr);
 	if (!hWnd) {
 		return NULL;
 	}

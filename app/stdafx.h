@@ -29,8 +29,10 @@
 
 using namespace std;
 
-#define APP_NAME _T(APP_NAME_TEXT)
+#define APP_NAME  _T(APP_NAME_TEXT)
 #define APP_CLASS APP_NAME _T("VietnameseInputMethod")
 
-#define APP_SET_DATA(KEY, VAL) KEY = VAL; SystemHelper::setIntSetting(_T(#KEY), KEY)
+#define APP_SET_DATA(KEY, VAL) \
+	KEY = VAL;                 \
+	SystemHelper::setIntSetting(_T(#KEY), KEY)
 #define APP_GET_DATA(KEY, DEFAULT_VAL) KEY = SystemHelper::getIntSetting(_T(#KEY), DEFAULT_VAL)

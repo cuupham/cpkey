@@ -45,11 +45,11 @@ static const wstring& iniPath() {
 	return path;
 }
 
-void SystemHelper::setIntSetting(LPCTSTR key, const int & val) {
+void SystemHelper::setIntSetting(LPCTSTR key, const int& val) {
 	WritePrivateProfileString(SETTINGS_SECTION, key, to_wstring(val).c_str(), iniPath().c_str());
 }
 
-int SystemHelper::getIntSetting(LPCTSTR key, const int & defaultValue) {
+int SystemHelper::getIntSetting(LPCTSTR key, const int& defaultValue) {
 	return (int)GetPrivateProfileInt(SETTINGS_SECTION, key, defaultValue, iniPath().c_str());
 }
 
@@ -128,7 +128,7 @@ string& SystemHelper::getFrontMostAppExecuteName() {
 	return _exeNameUtf8;
 }
 
-string & SystemHelper::getLastAppExecuteName() {
+string& SystemHelper::getLastAppExecuteName() {
 	return _exeNameUtf8;
 }
 
@@ -138,7 +138,7 @@ wstring SystemHelper::getFullPath() {
 	return wstring(path);
 }
 
-void SystemHelper::setClipboardText(LPCTSTR data, const int & len, const int& type) {
+void SystemHelper::setClipboardText(LPCTSTR data, const int& len, const int& type) {
 	HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, len * sizeof(WCHAR));
 	memcpy(GlobalLock(hMem), data, len * sizeof(WCHAR));
 	GlobalUnlock(hMem);

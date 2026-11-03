@@ -9,7 +9,6 @@
 #ifndef Engine_h
 #define Engine_h
 
-
 #include "DataType.h"
 #include "Vietnamese.h"
 #include "Macro.h"
@@ -18,16 +17,16 @@
 #define LOBYTE(data) (data & 0xFF)
 #endif // !LOBYTE
 #ifndef HIBYTE
-#define HIBYTE(data) ((data>>8) & 0xFF)
+#define HIBYTE(data) ((data >> 8) & 0xFF)
 #endif // !HIBYTE
 
 #define GET_SWITCH_KEY(data) (data & 0xFF)
-#define HAS_CONTROL(data) ((data & 0x100) ? 1 : 0)
-#define HAS_OPTION(data) ((data & 0x200) ? 1 : 0)
-#define HAS_COMMAND(data) ((data & 0x400) ? 1 : 0)
-#define HAS_SHIFT(data) ((data & 0x800) ? 1 : 0)
-#define GET_BOOL(data) (data ? 1 : 0)
-#define HAS_BEEP(data) (data & 0x8000)
+#define HAS_CONTROL(data)    ((data & 0x100) ? 1 : 0)
+#define HAS_OPTION(data)     ((data & 0x200) ? 1 : 0)
+#define HAS_COMMAND(data)    ((data & 0x400) ? 1 : 0)
+#define HAS_SHIFT(data)      ((data & 0x800) ? 1 : 0)
+#define GET_BOOL(data)       (data ? 1 : 0)
+#define HAS_BEEP(data)       (data & 0x8000)
 
 //define these variable in your application
 //API
@@ -97,8 +96,8 @@ Uint32 getCharacterCode(const Uint32& data);
 void vKeyHandleEvent(const vKeyEvent& event,
                      const vKeyEventState& state,
                      const Uint16& data,
-                     const Uint8& capsStatus=0,
-                     const bool& otherControlKey=false);
+                     const Uint8& capsStatus = 0,
+                     const bool& otherControlKey = false);
 
 /**
  * Start a new word
@@ -123,7 +122,7 @@ void vSetCheckSpelling();
 /**
  * temporarily turn off OpenKey engine
  */
-void vTempOffEngine(const bool& off=true);
+void vTempOffEngine(const bool& off = true);
 
 /**
  * some utils function

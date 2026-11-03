@@ -5,7 +5,7 @@
 struct QuickRule {
 	wstring trigger;
 	wstring output;
-	vector<Uint32> keys;  // what the engine records while the trigger is typed
+	vector<Uint32> keys; // what the engine records while the trigger is typed
 	vector<Uint32> codes; // characters typed instead
 };
 
@@ -25,7 +25,7 @@ static bool formsVietnameseLetter(const wstring& trigger) {
 	wstring lower = trigger;
 	transform(lower.begin(), lower.end(), lower.begin(), [](wchar_t c) { return (wchar_t)towlower(c); });
 	if (containsAny(lower, L"w") || lower.find(L"aa") != wstring::npos || lower.find(L"ee") != wstring::npos ||
-		lower.find(L"oo") != wstring::npos || lower.find(L"dd") != wstring::npos) {
+	    lower.find(L"oo") != wstring::npos || lower.find(L"dd") != wstring::npos) {
 		return true;
 	}
 	for (size_t i = 1; i < lower.size(); i++) {
