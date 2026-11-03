@@ -1,24 +1,23 @@
 #include "QuickTypingDialog.h"
 #include "QuickTyping.h"
 #include "ListViewHelper.h"
-
-#define MESSAGE_BUFFER 256
+#include "DarkTheme.h"
 
 static HWND listOf(HWND hDlg) {
 	return GetDlgItem(hDlg, IDC_LIST_QUICK_TYPING);
 }
 
 static wstring editText(HWND hDlg, int controlId) {
-	TCHAR text[MESSAGE_BUFFER] = { 0 };
-	GetDlgItemText(hDlg, controlId, text, MESSAGE_BUFFER);
+	TCHAR text[TEXT_BUFFER] = { 0 };
+	GetDlgItemText(hDlg, controlId, text, TEXT_BUFFER);
 	return wstring(text);
 }
 
 static int rowOf(HWND hDlg, const wstring& trigger) {
 	HWND list = listOf(hDlg);
 	for (int row = 0; row < ListView_GetItemCount(list); row++) {
-		TCHAR text[MESSAGE_BUFFER] = { 0 };
-		ListView_GetItemText(list, row, 0, text, MESSAGE_BUFFER);
+		TCHAR text[TEXT_BUFFER] = { 0 };
+		ListView_GetItemText(list, row, 0, text, TEXT_BUFFER);
 		if (trigger == text) return row;
 	}
 	return -1;
@@ -28,8 +27,8 @@ static wstring selectedTrigger(HWND hDlg) {
 	HWND list = listOf(hDlg);
 	int row = ListView_GetNextItem(list, -1, LVNI_SELECTED);
 	if (row < 0) return L"";
-	TCHAR text[MESSAGE_BUFFER] = { 0 };
-	ListView_GetItemText(list, row, 0, text, MESSAGE_BUFFER);
+	TCHAR text[TEXT_BUFFER] = { 0 };
+	ListView_GetItemText(list, row, 0, text, TEXT_BUFFER);
 	return wstring(text);
 }
 
@@ -51,7 +50,7 @@ static void showMessages(HWND hDlg, const wstring& triggerMessage, const wstring
 static wstring triggerMessage(HWND hDlg) {
 	wstring trigger = editText(hDlg, IDC_EDIT_QUICK_TRIGGER);
 	wstring error = checkQuickTrigger(trigger);
-	if (error.empty() && hasQuickTyping(trigger)) return L"Đã có quy tắc này. Bấm Sửa để đổi nội dung.";
+	if (error.empty() && hasQuickTyping(trigger)) return L"Đã có. Bấm Sửa để đổi nội dung.";
 	return error;
 }
 
@@ -115,66 +114,68 @@ static void onExample(HWND hDlg) {
 }
 
 static INT_PTR CALLBACK quickTypingProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	INT_PTR themed;
+	if (DarkTheme::handleMessage(hDlg, uMsg, wParam, lParam, themed)) return themed;
 	switch (uMsg) {
-	case WM_INITDIALOG: {
-		HICON icon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_APP_ICON));
-		SendMessage(hDlg, WM_SETICON, ICON_BIG, (LPARAM)icon);
-		HWND list = listOf(hDlg);
-		ListView_SetExtendedListViewStyle(list, LVS_EX_FULLROWSELECT);
-		addColumn(list, 0, _T("Gõ"), 90);
-		addColumn(list, 1, _T("Ra"), 160);
-		SendDlgItemMessage(hDlg, IDC_EDIT_QUICK_TRIGGER, EM_LIMITTEXT, QUICK_TYPING_MAX_TRIGGER, 0);
-		SendDlgItemMessage(hDlg, IDC_EDIT_QUICK_OUTPUT, EM_LIMITTEXT, QUICK_TYPING_MAX_OUTPUT, 0);
-		refreshList(hDlg);
-		return TRUE;
-	}
-	case WM_COMMAND:
-		switch (LOWORD(wParam)) {
-		case IDC_BUTTON_QUICK_SET:
-			onSet(hDlg);
-			return TRUE;
-		case IDC_BUTTON_QUICK_DELETE:
-			onDelete(hDlg);
-			return TRUE;
-		case IDC_BUTTON_QUICK_NEW:
-			onNew(hDlg);
-			return TRUE;
-		case IDC_BUTTON_QUICK_EXAMPLE:
-			onExample(hDlg);
-			return TRUE;
-		case IDC_EDIT_QUICK_TRIGGER:
-			if (HIWORD(wParam) == EN_CHANGE) updateSetButton(hDlg);
-			if (HIWORD(wParam) == EN_KILLFOCUS && !editText(hDlg, IDC_EDIT_QUICK_TRIGGER).empty()) {
-				SetDlgItemText(hDlg, IDC_STATIC_QUICK_TRIGGER_MSG, triggerMessage(hDlg).c_str());
-			}
-			return TRUE;
-		case IDC_EDIT_QUICK_OUTPUT:
-			if (HIWORD(wParam) == EN_KILLFOCUS && !editText(hDlg, IDC_EDIT_QUICK_OUTPUT).empty()) {
-				SetDlgItemText(hDlg, IDC_STATIC_QUICK_OUTPUT_MSG, checkQuickOutput(editText(hDlg, IDC_EDIT_QUICK_OUTPUT)).c_str());
-			}
-			return TRUE;
-		case IDCANCEL:
-			EndDialog(hDlg, IDOK);
+		case WM_INITDIALOG: {
+			HICON icon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_APP_ICON));
+			SendMessage(hDlg, WM_SETICON, ICON_BIG, (LPARAM)icon);
+			HWND list = listOf(hDlg);
+			ListView_SetExtendedListViewStyle(list, LVS_EX_FULLROWSELECT);
+			addColumn(list, 0, _T("Gõ"), 90);
+			addColumn(list, 1, _T("Ra"), 160);
+			SendDlgItemMessage(hDlg, IDC_EDIT_QUICK_TRIGGER, EM_LIMITTEXT, QUICK_TYPING_MAX_TRIGGER, 0);
+			SendDlgItemMessage(hDlg, IDC_EDIT_QUICK_OUTPUT, EM_LIMITTEXT, QUICK_TYPING_MAX_OUTPUT, 0);
+			refreshList(hDlg);
 			return TRUE;
 		}
-		break;
-	case WM_NOTIFY: {
-		LPNMHDR header = (LPNMHDR)lParam;
-		if (header->idFrom != IDC_LIST_QUICK_TYPING) break;
-		if (header->code == LVN_ITEMCHANGED && (((LPNMLISTVIEW)lParam)->uNewState & LVIS_SELECTED)) {
-			int row = ((LPNMLISTVIEW)lParam)->iItem;
-			TCHAR trigger[MESSAGE_BUFFER] = { 0 }, output[MESSAGE_BUFFER] = { 0 };
-			ListView_GetItemText(listOf(hDlg), row, 0, trigger, MESSAGE_BUFFER);
-			ListView_GetItemText(listOf(hDlg), row, 1, output, MESSAGE_BUFFER);
-			SetDlgItemText(hDlg, IDC_EDIT_QUICK_TRIGGER, trigger);
-			SetDlgItemText(hDlg, IDC_EDIT_QUICK_OUTPUT, output);
-			showMessages(hDlg, L"", L"");
-			updateButtons(hDlg);
-		} else if (header->code == LVN_KEYDOWN && ((LPNMLVKEYDOWN)lParam)->wVKey == VK_DELETE) {
-			onDelete(hDlg);
+		case WM_COMMAND:
+			switch (LOWORD(wParam)) {
+				case IDC_BUTTON_QUICK_SET:
+					onSet(hDlg);
+					return TRUE;
+				case IDC_BUTTON_QUICK_DELETE:
+					onDelete(hDlg);
+					return TRUE;
+				case IDC_BUTTON_QUICK_NEW:
+					onNew(hDlg);
+					return TRUE;
+				case IDC_BUTTON_QUICK_EXAMPLE:
+					onExample(hDlg);
+					return TRUE;
+				case IDC_EDIT_QUICK_TRIGGER:
+					if (HIWORD(wParam) == EN_CHANGE) updateSetButton(hDlg);
+					if (HIWORD(wParam) == EN_KILLFOCUS && !editText(hDlg, IDC_EDIT_QUICK_TRIGGER).empty()) {
+						SetDlgItemText(hDlg, IDC_STATIC_QUICK_TRIGGER_MSG, triggerMessage(hDlg).c_str());
+					}
+					return TRUE;
+				case IDC_EDIT_QUICK_OUTPUT:
+					if (HIWORD(wParam) == EN_KILLFOCUS && !editText(hDlg, IDC_EDIT_QUICK_OUTPUT).empty()) {
+						SetDlgItemText(hDlg, IDC_STATIC_QUICK_OUTPUT_MSG, checkQuickOutput(editText(hDlg, IDC_EDIT_QUICK_OUTPUT)).c_str());
+					}
+					return TRUE;
+				case IDCANCEL:
+					EndDialog(hDlg, IDOK);
+					return TRUE;
+			}
+			break;
+		case WM_NOTIFY: {
+			LPNMHDR header = (LPNMHDR)lParam;
+			if (header->idFrom != IDC_LIST_QUICK_TYPING) break;
+			if (header->code == LVN_ITEMCHANGED && (((LPNMLISTVIEW)lParam)->uNewState & LVIS_SELECTED)) {
+				int row = ((LPNMLISTVIEW)lParam)->iItem;
+				TCHAR trigger[TEXT_BUFFER] = { 0 }, output[TEXT_BUFFER] = { 0 };
+				ListView_GetItemText(listOf(hDlg), row, 0, trigger, TEXT_BUFFER);
+				ListView_GetItemText(listOf(hDlg), row, 1, output, TEXT_BUFFER);
+				SetDlgItemText(hDlg, IDC_EDIT_QUICK_TRIGGER, trigger);
+				SetDlgItemText(hDlg, IDC_EDIT_QUICK_OUTPUT, output);
+				showMessages(hDlg, L"", L"");
+				updateButtons(hDlg);
+			} else if (header->code == LVN_KEYDOWN && ((LPNMLVKEYDOWN)lParam)->wVKey == VK_DELETE) {
+				onDelete(hDlg);
+			}
+			break;
 		}
-		break;
-	}
 	}
 	return FALSE;
 }

@@ -9,7 +9,7 @@ trim_trailing_whitespace = true
 [app/**]
 indent_style = tab
 
-[engine/**]
+[{engine,tests}/**]
 indent_style = space
 indent_size = 4
 

@@ -2,18 +2,21 @@
 #include "BaseDialog.h"
 
 class AppRulesDialog : public BaseDialog {
-private:
+  private:
 	HWND hList;
-private:
+
+  private:
 	void initDialog();
 	void onAdd();
 	void onToggle();
 	void onDelete();
 	int selectedIndex();
 	string appAt(int index);
-protected:
+
+  protected:
 	INT_PTR eventProc(HWND dialog, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
-public:
+
+  public:
 	AppRulesDialog(const HINSTANCE& instance, const int& resourceId);
-	void fillData() override;
+	void refresh() override;
 };

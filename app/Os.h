@@ -1,8 +1,8 @@
 #pragma once
-#include "stdafx.h"
+#include "common.h"
 
-class SystemHelper {
-public:
+class Os {
+  public:
 	static void setIntSetting(LPCTSTR key, const int& val);
 	static int getIntSetting(LPCTSTR key, const int& defaultValue);
 
@@ -11,9 +11,9 @@ public:
 
 	static void registerRunOnStartup(const int& val);
 
-	static string& getFrontMostAppExecuteName();
-	static string& getLastAppExecuteName();
-	static string getExecuteName(const wstring& exePath);
+	static const string& getForegroundExecutableName();
+	static const string& getLastExecutableName();
+	static string getExecutableName(const wstring& exePath);
 
 	static string toUtf8(const wstring& text);
 	static wstring toWide(const string& text);

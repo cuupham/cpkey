@@ -1,32 +1,48 @@
 #include "MainControlDialog.h"
-#include "AppDelegate.h"
+#include "App.h"
 #include "AppRules.h"
 #include "QuickTyping.h"
 #include "QuickTypingDialog.h"
+#include "DarkTheme.h"
 #include <shlobj.h>
 
 // Height of the collapsible "Nâng cao" block in dialog units; keep in sync with app.rc.
-#define ADVANCED_BLOCK_HEIGHT 36
+#define ADVANCED_BLOCK_HEIGHT 73
+#define TOOLTIP_MAX_WIDTH     300
 
-static const int _advancedControls[] = {
-	IDC_CHECK_FIX_RECOMMEND_BROWSER, IDC_CHECK_FIX_CHROMIUM, IDC_CHECK_USE_CLIPBOARD,
+static const int ADVANCED_CONTROLS[] = {
+	IDC_HEADING_ADVANCED,
+	IDC_CARD_ADVANCED,
+	IDC_CHECK_FIX_RECOMMEND_BROWSER,
+	IDC_CHECK_FIX_CHROMIUM,
+	IDC_CHECK_SEND_BY_CLIPBOARD,
 };
 
 // Controls below the advanced block; they move when it opens or closes.
-static const int _footerControls[] = { ID_BTN_DEFAULT, IDBUTTON_OK };
+static const int FOOTER_CONTROLS[] = { IDC_BUTTON_DEFAULT, IDC_BUTTON_ADVANCED, IDC_BUTTON_OK };
 
-#define SWITCH_KEY_CTRL_MASK  0x100
-#define SWITCH_KEY_ALT_MASK   0x200
-#define SWITCH_KEY_WIN_MASK   0x400
-#define SWITCH_KEY_SHIFT_MASK 0x800
-#define SWITCH_KEY_BEEP_MASK  0x8000
+static const int HEADINGS[] = { IDC_HEADING_TYPING, IDC_HEADING_SPELLING, IDC_HEADING_SYSTEM, IDC_HEADING_ADVANCED };
+
+static const LPCTSTR SWITCH_KEY_PLACEHOLDER = _T("phím");
+
+struct Tooltip {
+	int controlId;
+	LPCTSTR text;
+};
+
+static const Tooltip TOOLTIPS[] = {
+	{ IDC_BUTTON_APP_RULES, _T("Đặt riêng chế độ Anh/Việt cho từng ứng dụng. Ứng dụng chưa có quy tắc dùng chế độ mặc định.") },
+	{ IDC_EDIT_SWITCH_KEY, _T("Phím phụ, tùy chọn. Để trống nếu chỉ dùng Ctrl, Alt, Win, Shift.") },
+	{ IDC_CHECK_MODERN_ORTHOGRAPHY, _T("Đặt dấu kiểu mới: oà, uý thay vì òa, úy.") },
+	{ IDC_CHECK_ALLOW_ZJWF, _T("Cho phép z, w, j, f làm phụ âm đầu của từ.") },
+};
 
 struct SwitchKeyOption {
 	int controlId;
 	int mask;
 };
 
-static const SwitchKeyOption _switchKeyOptions[] = {
+static const SwitchKeyOption SWITCH_KEY_OPTIONS[] = {
 	{ IDC_CHECK_SWITCH_KEY_CTRL, SWITCH_KEY_CTRL_MASK },
 	{ IDC_CHECK_SWITCH_KEY_ALT, SWITCH_KEY_ALT_MASK },
 	{ IDC_CHECK_SWITCH_KEY_WIN, SWITCH_KEY_WIN_MASK },
@@ -43,8 +59,8 @@ struct CheckOption {
 
 #define CHECK_OPTION(controlId, setting, inverted) { controlId, _T(#setting), &setting, inverted }
 
-static const CheckOption _checkOptions[] = {
-	CHECK_OPTION(IDC_CHECK_MODERN_ORTHORGRAPHY, vUseModernOrthography, false),
+static const CheckOption CHECK_OPTIONS[] = {
+	CHECK_OPTION(IDC_CHECK_MODERN_ORTHOGRAPHY, vUseModernOrthography, false),
 	CHECK_OPTION(IDC_CHECK_FIX_RECOMMEND_BROWSER, vFixRecommendBrowser, false),
 	CHECK_OPTION(IDC_CHECK_CAPS_FIRST_CHAR, vUpperCaseFirstChar, false),
 	CHECK_OPTION(IDC_CHECK_QUICK_TYPING, vUseMacro, false),
@@ -55,8 +71,8 @@ static const CheckOption _checkOptions[] = {
 	CHECK_OPTION(IDC_CHECK_ALLOW_ZJWF, vAllowConsonantZFWJ, false),
 	CHECK_OPTION(IDC_CHECK_TEMP_OFF_SPELLING, vTempOffSpelling, false),
 	CHECK_OPTION(IDC_CHECK_FIX_CHROMIUM, vFixChromiumBrowser, false),
-	CHECK_OPTION(IDC_CHECK_USE_CLIPBOARD, vSendKeyStepByStep, true),
-	CHECK_OPTION(IDC_CHECK_MODERN_ICON, vUseGrayIcon, false),
+	CHECK_OPTION(IDC_CHECK_SEND_BY_CLIPBOARD, vSendKeyStepByStep, true),
+	CHECK_OPTION(IDC_CHECK_GRAY_ICON, vUseGrayIcon, false),
 };
 
 // Order matches the engine's input type numbers.
@@ -67,7 +83,7 @@ static void setChecked(HWND hDlg, int controlId, bool checked) {
 }
 
 MainControlDialog::MainControlDialog(const HINSTANCE& instance, const int& resourceId)
-	: BaseDialog(instance, resourceId) {
+    : BaseDialog(instance, resourceId) {
 }
 
 void MainControlDialog::initDialog() {
@@ -78,9 +94,14 @@ void MainControlDialog::initDialog() {
 	for (LPCTSTR name : INPUT_TYPE_NAMES) {
 		SendMessage(comboBoxInputType, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(name));
 	}
-	textSwitchKey = GetDlgItem(hDlg, IDC_SWITCH_KEY_KEY);
+	textSwitchKey = GetDlgItem(hDlg, IDC_EDIT_SWITCH_KEY);
+	DarkTheme::setPlaceholder(textSwitchKey, SWITCH_KEY_PLACEHOLDER);
+	for (int controlId : HEADINGS) {
+		DarkTheme::setHeading(GetDlgItem(hDlg, controlId));
+	}
+	addTooltips();
 	setAdvancedOpen(false);
-	fillData();
+	refresh();
 }
 
 void MainControlDialog::setAdvancedOpen(bool open) {
@@ -89,10 +110,10 @@ void MainControlDialog::setAdvancedOpen(bool open) {
 	int shift = open == advancedOpen ? 0 : (open ? block.bottom : -block.bottom);
 	advancedOpen = open;
 
-	for (int controlId : _advancedControls) {
+	for (int controlId : ADVANCED_CONTROLS) {
 		ShowWindow(GetDlgItem(hDlg, controlId), open ? SW_SHOW : SW_HIDE);
 	}
-	for (int controlId : _footerControls) {
+	for (int controlId : FOOTER_CONTROLS) {
 		HWND button = GetDlgItem(hDlg, controlId);
 		RECT rect;
 		GetWindowRect(button, &rect);
@@ -105,86 +126,100 @@ void MainControlDialog::setAdvancedOpen(bool open) {
 	SetDlgItemText(hDlg, IDC_BUTTON_ADVANCED, open ? _T("Nâng cao ▾") : _T("Nâng cao ▸"));
 }
 
+void MainControlDialog::addTooltips() {
+	HWND tooltip = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_ALWAYSTIP | TTS_NOPREFIX,
+	                              0, 0, 0, 0, hDlg, NULL, hInstance, NULL);
+	SendMessage(tooltip, TTM_SETMAXTIPWIDTH, 0, TOOLTIP_MAX_WIDTH);
+	for (const Tooltip& entry : TOOLTIPS) {
+		TTTOOLINFO tool = { sizeof(tool) };
+		tool.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+		tool.hwnd = hDlg;
+		tool.uId = (UINT_PTR)GetDlgItem(hDlg, entry.controlId);
+		tool.lpszText = (LPTSTR)entry.text;
+		SendMessage(tooltip, TTM_ADDTOOL, 0, (LPARAM)&tool);
+	}
+}
+
 void MainControlDialog::updateRulesButton() {
 	size_t appRuleCount = getAllAppRules().size();
-	wstring appRules = appRuleCount ? L"Quản lý (" + to_wstring(appRuleCount) + L")..." : L"Quản lý...";
+	wstring appRules = appRuleCount ? L"Theo ứng dụng (" + to_wstring(appRuleCount) + L")" : L"Theo ứng dụng";
 	SetDlgItemText(hDlg, IDC_BUTTON_APP_RULES, appRules.c_str());
 
 	size_t quickCount = getQuickTyping().size();
-	wstring quickTyping = quickCount ? L"Tùy chỉnh (" + to_wstring(quickCount) + L")..." : L"Tùy chỉnh...";
+	wstring quickTyping = quickCount ? L"Tùy chỉnh (" + to_wstring(quickCount) + L")" : L"Tùy chỉnh";
 	SetDlgItemText(hDlg, IDC_BUTTON_QUICK_TYPING, quickTyping.c_str());
 }
 
 INT_PTR MainControlDialog::eventProc(HWND dialog, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
-	case WM_INITDIALOG:
-		hDlg = dialog;
-		initDialog();
-		// Start on the default button so Enter closes the panel instead of hitting "Cài đặt gốc...".
-		SetFocus(GetDlgItem(hDlg, IDBUTTON_OK));
-		return FALSE;
-	case WM_COMMAND: {
-		int controlId = LOWORD(wParam);
-		switch (controlId) {
-		case IDBUTTON_OK:
-		case IDCANCEL:
-			AppDelegate::getInstance()->closeDialog(this);
-			break;
-		case IDC_BUTTON_APP_RULES:
-			AppDelegate::getInstance()->onAppRules();
-			break;
-		case IDC_BUTTON_QUICK_TYPING:
-			showQuickTypingDialog(hInstance, hDlg);
-			fillData();
-			break;
-		case IDC_BUTTON_ADVANCED:
-			setAdvancedOpen(!advancedOpen);
-			break;
-		case ID_BTN_DEFAULT:
-			if (MessageBox(hDlg, _T("Bạn có chắc chắn muốn thiết lập lại cài đặt gốc?"), APP_NAME,
-						   MB_ICONEXCLAMATION | MB_YESNO) == IDYES) {
-				AppDelegate::getInstance()->onDefaultConfig();
-			}
-			break;
-		case IDC_RADIO_METHOD_VIETNAMESE:
-			setBaseLanguage(1);
-			break;
-		case IDC_RADIO_METHOD_ENGLISH:
-			setBaseLanguage(0);
-			break;
-		default:
-			if (HIWORD(wParam) == CBN_SELCHANGE && controlId == IDC_COMBO_INPUT_TYPE) {
-				AppDelegate::getInstance()->onInputType((int)SendMessage(comboBoxInputType, CB_GETCURSEL, 0, 0));
-			} else if (HIWORD(wParam) == BN_CLICKED) {
-				onCheckboxClicked(controlId);
-			} else if (HIWORD(wParam) == EN_CHANGE && controlId == IDC_SWITCH_KEY_KEY) {
-				UINT16 keyCode = lastKeyCode;
-				if (keyCode > 0) {
-					lastKeyCode = 0;
-					onCharacter(keyCode);
-				}
+		case WM_INITDIALOG:
+			hDlg = dialog;
+			initDialog();
+			// Focus the default button so Enter closes the panel instead of hitting "Cài đặt gốc...".
+			SetFocus(GetDlgItem(hDlg, IDC_BUTTON_OK));
+			return FALSE;
+		case WM_COMMAND: {
+			int controlId = LOWORD(wParam);
+			switch (controlId) {
+				case IDC_BUTTON_OK:
+				case IDCANCEL:
+					App::getInstance()->closeDialog(this);
+					break;
+				case IDC_BUTTON_APP_RULES:
+					App::getInstance()->onAppRules();
+					break;
+				case IDC_BUTTON_QUICK_TYPING:
+					showQuickTypingDialog(hInstance, hDlg);
+					refresh();
+					break;
+				case IDC_BUTTON_ADVANCED:
+					setAdvancedOpen(!advancedOpen);
+					break;
+				case IDC_BUTTON_DEFAULT:
+					if (MessageBox(hDlg, _T("Đặt lại cài đặt gốc?"), APP_NAME,
+					               MB_ICONEXCLAMATION | MB_YESNO) == IDYES) {
+						App::getInstance()->onDefaultConfig();
+					}
+					break;
+				case IDC_RADIO_METHOD_VIETNAMESE:
+					setBaseLanguage(LANGUAGE_VIETNAMESE);
+					break;
+				case IDC_RADIO_METHOD_ENGLISH:
+					setBaseLanguage(LANGUAGE_ENGLISH);
+					break;
+				default:
+					if (HIWORD(wParam) == CBN_SELCHANGE && controlId == IDC_COMBO_INPUT_TYPE) {
+						App::getInstance()->onInputType((int)SendMessage(comboBoxInputType, CB_GETCURSEL, 0, 0));
+					} else if (HIWORD(wParam) == BN_CLICKED) {
+						onCheckboxClicked(controlId);
+					} else if (HIWORD(wParam) == EN_CHANGE && controlId == IDC_EDIT_SWITCH_KEY) {
+						UINT16 keyCode = lastKeyCode;
+						if (keyCode > 0) {
+							lastKeyCode = 0;
+							onSwitchKeyPressed(keyCode);
+						}
+					}
+					break;
 			}
 			break;
 		}
-		break;
-	}
 	}
 	return FALSE;
 }
 
-void MainControlDialog::fillData() {
+void MainControlDialog::refresh() {
 	updateRulesButton();
 	SendMessage(comboBoxInputType, CB_SETCURSEL, vInputType, 0);
 
-	for (const SwitchKeyOption& option : _switchKeyOptions) {
+	for (const SwitchKeyOption& option : SWITCH_KEY_OPTIONS) {
 		setChecked(hDlg, option.controlId, vSwitchKeyStatus & option.mask);
 	}
-	setSwitchKeyText((vSwitchKeyStatus >> 24) & 0xFF);
+	setSwitchKeyText(GET_SWITCH_KEY(vSwitchKeyStatus));
 
 	setChecked(hDlg, IDC_RADIO_METHOD_VIETNAMESE, getBaseLanguage());
 	setChecked(hDlg, IDC_RADIO_METHOD_ENGLISH, !getBaseLanguage());
 
-	for (const CheckOption& option : _checkOptions) {
+	for (const CheckOption& option : CHECK_OPTIONS) {
 		setChecked(hDlg, option.controlId, (*option.value != 0) != option.inverted);
 	}
 
@@ -197,71 +232,68 @@ void MainControlDialog::fillData() {
 void MainControlDialog::onCheckboxClicked(int controlId) {
 	bool checked = IsDlgButtonChecked(hDlg, controlId) == BST_CHECKED;
 
-	for (const SwitchKeyOption& option : _switchKeyOptions) {
+	for (const SwitchKeyOption& option : SWITCH_KEY_OPTIONS) {
 		if (option.controlId == controlId) {
 			APP_SET_DATA(vSwitchKeyStatus, checked ? (vSwitchKeyStatus | option.mask) : (vSwitchKeyStatus & ~option.mask));
 			return;
 		}
 	}
 
-	for (const CheckOption& option : _checkOptions) {
+	for (const CheckOption& option : CHECK_OPTIONS) {
 		if (option.controlId != controlId) continue;
 		*option.value = checked != option.inverted;
-		SystemHelper::setIntSetting(option.name, *option.value);
+		Os::setIntSetting(option.name, *option.value);
 		if (option.value == &vCheckSpelling) {
 			vSetCheckSpelling();
 		} else if (option.value == &vRunWithWindows) {
-			SystemHelper::registerRunOnStartup(vRunWithWindows);
+			Os::registerRunOnStartup(vRunWithWindows);
 		} else if (option.value == &vRunAsAdmin) {
 			requestRestartAsAdmin();
 		}
-		fillData();
-		SystemTrayHelper::updateData();
+		refresh();
+		Tray::refresh();
 		return;
 	}
 }
 
-void MainControlDialog::onCharacter(const UINT16& keyCode) {
+void MainControlDialog::onSwitchKeyPressed(const UINT16& keyCode) {
 	UINT16 code = GET_SWITCH_KEY(vSwitchKeyStatus);
 	if (keyCode == VK_DELETE || keyCode == VK_BACK) {
-		code = 0xFE;
+		code = EMPTY_SWITCH_KEY;
 	} else if (keyCodeToCharacter(keyCode) != 0) {
 		code = keyCode;
 	}
-	// The key lives in both the low byte and the top byte of the setting.
-	vSwitchKeyStatus = (vSwitchKeyStatus & 0x00FFFF00) | code | ((unsigned int)code << 24);
-	SystemHelper::setIntSetting(_T("vSwitchKeyStatus"), vSwitchKeyStatus);
+	APP_SET_DATA(vSwitchKeyStatus, SET_SWITCH_KEY(vSwitchKeyStatus, code));
 	setSwitchKeyText(code);
 }
 
 void MainControlDialog::setSwitchKeyText(const UINT16& keyCode) {
 	if (keyCode == KEY_SPACE) {
 		SetWindowText(textSwitchKey, _T("Space"));
-	} else if (keyCode == 0xFE) {
+	} else if (keyCode == EMPTY_SWITCH_KEY) {
 		SetWindowText(textSwitchKey, _T(""));
 	} else {
-		Uint16 key[] = { keyCode, 0 };
+		uint16_t key[] = { keyCode, 0 };
 		SetWindowText(textSwitchKey, (LPCWSTR)&key);
 	}
 }
 
 void MainControlDialog::requestRestartAsAdmin() {
 	if (vRunAsAdmin && !IsUserAnAdmin()) {
-		if (MessageBox(hDlg, _T("Bạn cần khởi động lại để chạy với quyền Admin.\nKhởi động lại ngay bây giờ?"), APP_NAME,
-					   MB_ICONEXCLAMATION | MB_YESNO) == IDYES) {
+		if (MessageBox(hDlg, _T("Cần khởi động lại để chạy với quyền Admin. Khởi động lại ngay?"), APP_NAME,
+		               MB_ICONEXCLAMATION | MB_YESNO) == IDYES) {
 			// The elevated instance registers autostart again when it starts.
-			SystemHelper::registerRunOnStartup(false);
+			Os::registerRunOnStartup(false);
 			// Quit first: the new instance exits if it still finds this one running.
-			AppDelegate::getInstance()->onExit();
-			ShellExecute(0, L"runas", SystemHelper::getFullPath().c_str(), 0, 0, SW_SHOWNORMAL);
+			App::getInstance()->onExit();
+			ShellExecute(0, L"runas", Os::getFullPath().c_str(), 0, 0, SW_SHOWNORMAL);
 			return;
 		}
 		// Declined: stay in the current mode so autostart keeps working.
-		vRunAsAdmin = 0;
-		SystemHelper::setIntSetting(_T("vRunAsAdmin"), 0);
+		APP_SET_DATA(vRunAsAdmin, 0);
 	}
-	SystemHelper::registerRunOnStartup(false);
+	Os::registerRunOnStartup(false);
 	if (vRunWithWindows) {
-		SystemHelper::registerRunOnStartup(true);
+		Os::registerRunOnStartup(true);
 	}
 }

@@ -14,18 +14,18 @@
 
 using namespace std;
 
-extern map<Uint16, vector<vector<Uint16>>> _vowel;
-extern map<Uint16, vector<vector<Uint32>>> _vowelCombine;
-extern map<Uint16, vector<vector<Uint16>>> _vowelForMark;
-extern vector<vector<Uint16>> _consonantD;
-extern vector<vector<Uint16>> _consonantTable;
-extern vector<vector<Uint16>> _endConsonantTable;
-extern vector<Uint16> _standaloneWbad;
-extern vector<vector<Uint16>> _doubleWAllowed;
+extern map<uint16_t, vector<vector<uint16_t>>> vowelByKey;
+extern map<uint16_t, vector<vector<uint32_t>>> vowelCombinations;
+extern map<uint16_t, vector<vector<uint16_t>>> vowelsForMark;
+extern vector<vector<uint16_t>> consonantsForD;
+extern vector<vector<uint16_t>> consonantTable;
+extern vector<vector<uint16_t>> endConsonantTable;
+extern vector<uint16_t> standaloneWBad;
+extern vector<vector<uint16_t>> doubleWAllowed;
 
-extern map<Uint32, vector<Uint16>> _unicodeTable;
+extern map<uint32_t, vector<uint16_t>> unicodeTable;
 
-extern map<Uint32, Uint32> _characterMap;
+extern map<uint32_t, uint32_t> characterMap;
 
-extern Uint16 keyCodeToCharacter(const Uint32& keyCode);
+extern uint16_t keyCodeToCharacter(const uint32_t& keyCode);
 #endif /* Vietnamese_h */

@@ -1,11 +1,7 @@
 #pragma once
-#include "stdafx.h"
+#include "common.h"
 
-enum AppRuleMode {
-	RULE_NONE = -1,
-	RULE_ENGLISH = 0,
-	RULE_VIETNAMESE = 1,
-};
+#define RULE_NONE -1 // no rule for the app; any other value is a Language
 
 void loadAppRules();
 int getAppRule(const string& exe);

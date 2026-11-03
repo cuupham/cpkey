@@ -1,7 +1,5 @@
 #pragma once
 
-#include "targetver.h"
-
 #define WIN32_LEAN_AND_MEAN
 
 #include <windows.h>
@@ -24,13 +22,21 @@
 
 #include "KeyHook.h"
 #include "Settings.h"
-#include "SystemHelper.h"
-#include "SystemTrayHelper.h"
+#include "Os.h"
+#include "Tray.h"
 
 using namespace std;
 
-#define APP_NAME _T(APP_NAME_TEXT)
+#define APP_NAME  _T(APP_NAME_TEXT)
 #define APP_CLASS APP_NAME _T("VietnameseInputMethod")
 
-#define APP_SET_DATA(KEY, VAL) KEY = VAL; SystemHelper::setIntSetting(_T(#KEY), KEY)
-#define APP_GET_DATA(KEY, DEFAULT_VAL) KEY = SystemHelper::getIntSetting(_T(#KEY), DEFAULT_VAL)
+// Capacity of the stack buffers that hold control text.
+#define TEXT_BUFFER 256
+
+// Sent to the running instance to open its control panel.
+#define WM_SHOW_CONTROL_PANEL (WM_USER + 2019)
+
+#define APP_SET_DATA(KEY, VAL) \
+	KEY = VAL;                 \
+	Os::setIntSetting(_T(#KEY), KEY)
+#define APP_GET_DATA(KEY, DEFAULT_VAL) KEY = Os::getIntSetting(_T(#KEY), DEFAULT_VAL)

@@ -8,6 +8,6 @@ using namespace std;
 
 // Looks up the text typed as abbreviation (key codes, CAPS_MASK for upper case). On a match fills
 // macroContentCode with the characters to type instead. Implemented by the application.
-bool findMacro(vector<Uint32>& key, vector<Uint32>& macroContentCode);
+bool findMacro(vector<uint32_t>& key, vector<uint32_t>& macroContentCode);
 
 #endif

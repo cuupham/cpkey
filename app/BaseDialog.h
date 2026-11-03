@@ -1,20 +1,22 @@
 #pragma once
-#include "stdafx.h"
+#include "common.h"
 
 class BaseDialog {
-protected:
+  protected:
 	UINT resId;
 	HINSTANCE hInstance;
 	HWND hDlg;
-protected:
+
+  protected:
 	virtual INT_PTR eventProc(HWND dialog, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
 	void setDialogIcon();
-public:
+
+  public:
 	BaseDialog(const HINSTANCE& instance, const int& resourceId);
 	virtual ~BaseDialog() {}
 	void show();
 	void bringOnTop();
-	virtual void fillData() = 0;
+	virtual void refresh() = 0;
 
 	HWND getHwnd();
 	void closeDialog();

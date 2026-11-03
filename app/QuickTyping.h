@@ -1,11 +1,11 @@
 #pragma once
-#include "stdafx.h"
+#include "common.h"
 
 // User-defined abbreviations: typing a word that matches a trigger exactly (case-sensitive)
 // and then a word break replaces it with the output.
 
 #define QUICK_TYPING_MAX_TRIGGER 20
-#define QUICK_TYPING_MAX_OUTPUT 200
+#define QUICK_TYPING_MAX_OUTPUT  200
 
 void loadQuickTyping();
 

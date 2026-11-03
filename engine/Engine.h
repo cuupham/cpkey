@@ -9,124 +9,66 @@
 #ifndef Engine_h
 #define Engine_h
 
-
 #include "DataType.h"
 #include "Vietnamese.h"
 #include "Macro.h"
+#include "TextEdit.h"
 
-#ifndef LOBYTE
-#define LOBYTE(data) (data & 0xFF)
-#endif // !LOBYTE
-#ifndef HIBYTE
-#define HIBYTE(data) ((data>>8) & 0xFF)
-#endif // !HIBYTE
+// Layout of the switch-key setting: low byte and top byte hold the key, the middle bits hold the modifiers.
+#define EMPTY_SWITCH_KEY      0xFEu
+#define EMPTY_HOTKEY          ((EMPTY_SWITCH_KEY << 24) | EMPTY_SWITCH_KEY)
+#define SWITCH_KEY_CTRL_MASK  0x100
+#define SWITCH_KEY_ALT_MASK   0x200
+#define SWITCH_KEY_WIN_MASK   0x400
+#define SWITCH_KEY_SHIFT_MASK 0x800
+#define SWITCH_KEY_BEEP_MASK  0x8000
 
-#define GET_SWITCH_KEY(data) (data & 0xFF)
-#define HAS_CONTROL(data) ((data & 0x100) ? 1 : 0)
-#define HAS_OPTION(data) ((data & 0x200) ? 1 : 0)
-#define HAS_COMMAND(data) ((data & 0x400) ? 1 : 0)
-#define HAS_SHIFT(data) ((data & 0x800) ? 1 : 0)
-#define GET_BOOL(data) (data ? 1 : 0)
-#define HAS_BEEP(data) (data & 0x8000)
+#define SWITCH_KEY_MODIFIER_MASK  0x00FFFF00
+#define GET_SWITCH_KEY(data)      ((data) & 0xFF)
+#define SET_SWITCH_KEY(data, key) (((data) & SWITCH_KEY_MODIFIER_MASK) | (key) | ((unsigned int)(key) << 24))
+#define HAS_CONTROL(data)         (((data) & SWITCH_KEY_CTRL_MASK) ? 1 : 0)
+#define HAS_ALT(data)             (((data) & SWITCH_KEY_ALT_MASK) ? 1 : 0)
+#define HAS_WIN(data)             (((data) & SWITCH_KEY_WIN_MASK) ? 1 : 0)
+#define HAS_SHIFT(data)           (((data) & SWITCH_KEY_SHIFT_MASK) ? 1 : 0)
+#define GET_BOOL(data)            ((data) ? 1 : 0)
+#define HAS_BEEP(data)            ((data) & SWITCH_KEY_BEEP_MASK)
 
-//define these variable in your application
-//API
-/*
- * 0: Telex
- * 1: VNI
- */
-extern int vInputType;
-
-/**
- * 0: No
- * 1: Yes
- */
+// Settings the application must define (see Settings.h). All are 0/1 flags except vInputType.
+extern int vInputType; // vKeyInputType
 extern int vCheckSpelling;
-
-/*
- * 0: òa, úy
- * 1: oà uý
-*/
-extern int vUseModernOrthography;
-
-/**
- * Work together with vCheckSpelling
- * 0: No
- * 1: Yes
- *
- */
-extern int vRestoreIfWrongSpelling;
-
-/**
- * Macro on or off
- */
+extern int vUseModernOrthography; // 1: oà, uý; 0: òa, úy
+extern int vRestoreIfWrongSpelling; // needs vCheckSpelling
 extern int vUseMacro;
-
-/**
- * Auto write upper case character for first letter.
- * 0: No
- * 1: Yes
- */
 extern int vUpperCaseFirstChar;
-
-/**
- * Allow write word with consonant Z, F, W, J
- * 0: No
- * 1: Yes
- */
 extern int vAllowConsonantZFWJ;
 
-/**
- * Call this function first to receive data pointer
- */
+// Call first; returns the vKeyHookState the engine fills after each key.
 void* vKeyInit();
 
-/**
- * Convert engine character to real character
- */
-Uint32 getCharacterCode(const Uint32& data);
+// Converts an engine character to a real character.
+uint32_t getCharacterCode(const uint32_t& data);
 
-/**
- * MAIN entry point for each key
- * event: mouse or keyboard event
- * state: additional state for event
- * data: key code
- * isCaps: caplock is on or shift key is pressing
- * otherControlKey: ctrl, option,... is pressing
- */
+// Entry point for each key or mouse event. capsStatus: 1 shift, 2 caps lock.
+// otherControlKey: Ctrl or Alt is held.
 void vKeyHandleEvent(const vKeyEvent& event,
                      const vKeyEventState& state,
-                     const Uint16& data,
-                     const Uint8& capsStatus=0,
-                     const bool& otherControlKey=false);
+                     const uint16_t& data,
+                     const uint8_t& capsStatus = 0,
+                     const bool& otherControlKey = false);
 
-/**
- * Start a new word
- */
+// Starts a new word.
 void startNewSession();
 
-/**
- * do some task in english mode (use for macro)
- */
-void vEnglishMode(const vKeyEventState& state, const Uint16& data, const bool& isCaps, const bool& otherControlKey);
+// Key handling while typing English: only the macro feature is active.
+void vEnglishMode(const vKeyEventState& state, const uint16_t& data, const bool& isCaps, const bool& otherControlKey);
 
-/**
- * temporarily turn off spell checking
- */
+// Toggles spell checking, only when the user had it on.
 void vTempOffSpellChecking();
 
-/**
- * reset spelling value
- */
+// Re-reads vCheckSpelling after the setting changed.
 void vSetCheckSpelling();
 
-/**
- * temporarily turn off OpenKey engine
- */
-void vTempOffEngine(const bool& off=true);
-
-/**
- * some utils function
- */
+// Pauses the engine until the next word break; false resumes it.
+void vTempOffEngine(const bool& off = true);
 
 #endif /* Engine_h */
