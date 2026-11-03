@@ -45,21 +45,21 @@ extern int vAllowConsonantZFWJ;
 void* vKeyInit();
 
 // Converts an engine character to a real character.
-Uint32 getCharacterCode(const Uint32& data);
+uint32_t getCharacterCode(const uint32_t& data);
 
 // Entry point for each key or mouse event. capsStatus: 1 shift, 2 caps lock.
 // otherControlKey: Ctrl or Alt is held.
 void vKeyHandleEvent(const vKeyEvent& event,
                      const vKeyEventState& state,
-                     const Uint16& data,
-                     const Uint8& capsStatus = 0,
+                     const uint16_t& data,
+                     const uint8_t& capsStatus = 0,
                      const bool& otherControlKey = false);
 
 // Starts a new word.
 void startNewSession();
 
 // Key handling while typing English: only the macro feature is active.
-void vEnglishMode(const vKeyEventState& state, const Uint16& data, const bool& isCaps, const bool& otherControlKey);
+void vEnglishMode(const vKeyEventState& state, const uint16_t& data, const bool& isCaps, const bool& otherControlKey);
 
 // Toggles spell checking, only when the user had it on.
 void vTempOffSpellChecking();

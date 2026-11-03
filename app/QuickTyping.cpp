@@ -5,8 +5,8 @@
 struct QuickRule {
 	wstring trigger;
 	wstring output;
-	vector<Uint32> keys; // what the engine records while the trigger is typed
-	vector<Uint32> codes; // characters typed instead
+	vector<uint32_t> keys; // what the engine records while the trigger is typed
+	vector<uint32_t> codes; // characters typed instead
 };
 
 static vector<QuickRule> quickRules;
@@ -70,7 +70,7 @@ static QuickRule makeRule(const wstring& trigger, const wstring& output) {
 		rule.keys.push_back(_characterMap[c]);
 	}
 	for (wchar_t c : output) {
-		rule.codes.push_back((Uint32)c | PURE_CHARACTER_MASK);
+		rule.codes.push_back((uint32_t)c | PURE_CHARACTER_MASK);
 	}
 	return rule;
 }
@@ -122,7 +122,7 @@ void removeQuickTyping(const wstring& trigger) {
 }
 
 // Called by the engine at every word break.
-bool findMacro(vector<Uint32>& key, vector<Uint32>& macroContentCode) {
+bool findMacro(vector<uint32_t>& key, vector<uint32_t>& macroContentCode) {
 	for (const QuickRule& rule : quickRules) {
 		if (rule.keys == key) {
 			macroContentCode = rule.codes;

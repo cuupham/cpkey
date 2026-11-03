@@ -9,6 +9,7 @@
 #ifndef DataType_h
 #define DataType_h
 
+#include <cstdint>
 #include <vector>
 
 using namespace std;
@@ -34,11 +35,6 @@ enum vKeyInputType {
     vSimpleTelex2
 };
 
-typedef unsigned char Byte;
-typedef unsigned char Uint8;
-typedef unsigned short Uint16;
-typedef unsigned int Uint32;
-
 enum HookCodeState {
     vDoNothing = 0,
     vWillProcess, // replace the typed word with charData
@@ -50,17 +46,17 @@ enum HookCodeState {
 
 // Result of a key event, read by the application.
 struct vKeyHookState {
-    Byte code; // HookCodeState
-    Byte backspaceCount;
-    Byte newCharCount;
+    uint8_t code; // HookCodeState
+    uint8_t backspaceCount;
+    uint8_t newCharCount;
 
     // 1: word break, 2: delete key, 3: normal key, 4: do not send the empty character
-    Byte extCode;
+    uint8_t extCode;
 
-    Uint32 charData[MAX_BUFF]; // new characters, in reverse typing order
+    uint32_t charData[MAX_BUFF]; // new characters, in reverse typing order
 
-    vector<Uint32> macroKey; // keys typed as the abbreviation
-    vector<Uint32> macroData; // characters typed instead
+    vector<uint32_t> macroKey; // keys typed as the abbreviation
+    vector<uint32_t> macroData; // characters typed instead
 };
 
 #include "platforms/win32.h"
@@ -105,7 +101,7 @@ struct vKeyHookState {
 //Utilities macro
 #define IS_CONSONANT(keyCode) !(keyCode == KEY_A || keyCode == KEY_E || keyCode == KEY_U || keyCode == KEY_Y || keyCode == KEY_I || keyCode == KEY_O)
 //#define IS_MARK_KEY(keyCode) (keyCode == KEY_S || keyCode == KEY_F || keyCode == KEY_R || keyCode == KEY_J || keyCode == KEY_X)
-#define CHR(index) (Uint16) TypingWord[index]
+#define CHR(index) (uint16_t)TypingWord[index]
 #define IS_SPECIALKEY(keyCode)                                                                                                                                                                                                           \
     (vInputType == vTelex ? keyCode == KEY_W || keyCode == KEY_E || keyCode == KEY_R || keyCode == KEY_O || keyCode == KEY_LEFT_BRACKET ||                                                                                               \
                                 keyCode == KEY_RIGHT_BRACKET || keyCode == KEY_A || keyCode == KEY_S || keyCode == KEY_D || keyCode == KEY_F || keyCode == KEY_J ||                                                                      \

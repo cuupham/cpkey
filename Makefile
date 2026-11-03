@@ -21,9 +21,6 @@ all: $(TARGET)
 $(TARGET): $(OBJ)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-# The engine is upstream code that reuses global scratch variables on purpose.
-$(OUT)/engine/%.o: WARNINGS += -Wno-shadow
-
 $(OUT)/%.o: %.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(WARNINGS) -c $< -o $@

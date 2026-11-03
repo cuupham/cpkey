@@ -9,7 +9,7 @@
 #include "Vietnamese.h"
 using namespace std;
 
-map<Uint16, vector<vector<Uint16>>> _vowel = {
+map<uint16_t, vector<vector<uint16_t>>> _vowel = {
     { KEY_A, {
                  { KEY_A, KEY_N, KEY_G },
                  { KEY_A, KEY_G | END_CONSONANT_MASK },
@@ -65,7 +65,7 @@ map<Uint16, vector<vector<Uint16>>> _vowel = {
                { KEY_U, KEY_U } } }
 };
 
-map<Uint16, vector<vector<Uint32>>> _vowelCombine = {
+map<uint16_t, vector<vector<uint32_t>>> _vowelCombine = {
     { KEY_A, {
                  //first element: whether an end consonant is allowed
                  { 0, KEY_A, KEY_I },
@@ -129,7 +129,7 @@ map<Uint16, vector<vector<Uint32>>> _vowelCombine = {
              } }
 };
 
-vector<vector<Uint16>> _consonantD = {
+vector<vector<uint16_t>> _consonantD = {
     { KEY_D, KEY_E, KEY_N, KEY_H }, { KEY_D, KEY_E, KEY_H | END_CONSONANT_MASK }, { KEY_D, KEY_E, KEY_N, KEY_G }, { KEY_D, KEY_E, KEY_G | END_CONSONANT_MASK }, { KEY_D, KEY_E, KEY_C, KEY_H }, { KEY_D, KEY_E, KEY_K | END_CONSONANT_MASK }, { KEY_D, KEY_E, KEY_N }, { KEY_D, KEY_E, KEY_C }, { KEY_D, KEY_E, KEY_M }, { KEY_D, KEY_E }, { KEY_D, KEY_E, KEY_T }, { KEY_D, KEY_E, KEY_U }, { KEY_D, KEY_E, KEY_O }, { KEY_D, KEY_E, KEY_P },
 
     { KEY_D, KEY_U, KEY_N, KEY_G },
@@ -203,7 +203,7 @@ vector<vector<Uint16>> _consonantD = {
     { KEY_D }
 };
 
-map<Uint16, vector<vector<Uint16>>> _vowelForMark = {
+map<uint16_t, vector<vector<uint16_t>>> _vowelForMark = {
     { KEY_A, {
                  { KEY_A, KEY_N, KEY_G },
                  { KEY_A, KEY_G | END_CONSONANT_MASK },
@@ -244,7 +244,7 @@ map<Uint16, vector<vector<Uint16>>> _vowelForMark = {
     { KEY_Y, { { KEY_Y } } }
 };
 
-vector<vector<Uint16>> _consonantTable = {
+vector<vector<uint16_t>> _consonantTable = {
     { KEY_N, KEY_G, KEY_H },
     { KEY_P, KEY_H },
     { KEY_T, KEY_H },
@@ -280,7 +280,7 @@ vector<vector<Uint16>> _consonantTable = {
     { KEY_J | END_CONSONANT_MASK },
 };
 
-vector<vector<Uint16>> _endConsonantTable = {
+vector<vector<uint16_t>> _endConsonantTable = {
     { KEY_T },
     { KEY_P },
     { KEY_C },
@@ -294,11 +294,11 @@ vector<vector<Uint16>> _endConsonantTable = {
     { KEY_N, KEY_G },
 };
 
-vector<Uint16> _standaloneWbad = {
+vector<uint16_t> _standaloneWbad = {
     KEY_W, KEY_E, KEY_Y, KEY_F, KEY_J, KEY_K, KEY_Z
 };
 
-vector<vector<Uint16>> _doubleWAllowed = {
+vector<vector<uint16_t>> _doubleWAllowed = {
     { KEY_T, KEY_R },
     { KEY_T, KEY_H },
     { KEY_C, KEY_H },
@@ -310,7 +310,7 @@ vector<vector<Uint16>> _doubleWAllowed = {
     { KEY_G, KEY_H },
 };
 
-map<Uint32, vector<Uint16>> _unicodeTable = {
+map<uint32_t, vector<uint16_t>> _unicodeTable = {
     //{keyCode, {CAPS_CHAR,    NORMAL_CHAR,     CAPS_W_CHAR,     NORMAL_W_CHAR}}
     //KEY_A,            {Â, â, Ă, ă, Á, á, À, à, Ả, ả, Ã, ã, Ạ, ạ
     { KEY_A, { 0x00C2, 0x00E2, 0x0102, 0x0103, 0x00C1, 0x00E1, 0x00C0, 0x00E0, 0x1EA2, 0x1EA3, 0x00C3, 0x00E3, 0x1EA0, 0x1EA1 } },
@@ -330,20 +330,20 @@ map<Uint32, vector<Uint16>> _unicodeTable = {
     { KEY_Y, { 0x00DD, 0x00FD, 0x1EF2, 0x1EF3, 0x1EF6, 0x1EF7, 0x1EF8, 0x1EF9, 0x1EF4, 0x1EF5 } },
 };
 
-map<Uint32, Uint32> _characterMap = {
+map<uint32_t, uint32_t> _characterMap = {
     { 'a', KEY_A }, { 'A', KEY_A | CAPS_MASK }, { 'b', KEY_B }, { 'B', KEY_B | CAPS_MASK }, { 'c', KEY_C }, { 'C', KEY_C | CAPS_MASK }, { 'd', KEY_D }, { 'D', KEY_D | CAPS_MASK }, { 'e', KEY_E }, { 'E', KEY_E | CAPS_MASK }, { 'f', KEY_F }, { 'F', KEY_F | CAPS_MASK }, { 'g', KEY_G }, { 'G', KEY_G | CAPS_MASK }, { 'h', KEY_H }, { 'H', KEY_H | CAPS_MASK }, { 'i', KEY_I }, { 'I', KEY_I | CAPS_MASK }, { 'j', KEY_J }, { 'J', KEY_J | CAPS_MASK }, { 'k', KEY_K }, { 'K', KEY_K | CAPS_MASK }, { 'l', KEY_L }, { 'L', KEY_L | CAPS_MASK }, { 'm', KEY_M }, { 'M', KEY_M | CAPS_MASK }, { 'n', KEY_N }, { 'N', KEY_N | CAPS_MASK }, { 'o', KEY_O }, { 'O', KEY_O | CAPS_MASK }, { 'p', KEY_P }, { 'P', KEY_P | CAPS_MASK }, { 'q', KEY_Q }, { 'Q', KEY_Q | CAPS_MASK }, { 'r', KEY_R }, { 'R', KEY_R | CAPS_MASK }, { 's', KEY_S }, { 'S', KEY_S | CAPS_MASK }, { 't', KEY_T }, { 'T', KEY_T | CAPS_MASK }, { 'u', KEY_U }, { 'U', KEY_U | CAPS_MASK }, { 'v', KEY_V }, { 'V', KEY_V | CAPS_MASK }, { 'w', KEY_W }, { 'W', KEY_W | CAPS_MASK }, { 'x', KEY_X }, { 'X', KEY_X | CAPS_MASK }, { 'y', KEY_Y }, { 'Y', KEY_Y | CAPS_MASK }, { 'z', KEY_Z }, { 'Z', KEY_Z | CAPS_MASK }, { '1', KEY_1 }, { '!', KEY_1 | CAPS_MASK }, { '2', KEY_2 }, { '@', KEY_2 | CAPS_MASK }, { '3', KEY_3 }, { '#', KEY_3 | CAPS_MASK }, { '4', KEY_4 }, { '$', KEY_4 | CAPS_MASK }, { '5', KEY_5 }, { '%', KEY_5 | CAPS_MASK }, { '6', KEY_6 }, { '^', KEY_6 | CAPS_MASK }, { '7', KEY_7 }, { '&', KEY_7 | CAPS_MASK }, { '8', KEY_8 }, { '*', KEY_8 | CAPS_MASK }, { '9', KEY_9 }, { '(', KEY_9 | CAPS_MASK }, { '0', KEY_0 }, { ')', KEY_0 | CAPS_MASK }, { '`', KEY_BACKQUOTE }, { '~', KEY_BACKQUOTE | CAPS_MASK }, { '-', KEY_MINUS }, { '_', KEY_MINUS | CAPS_MASK }, { '=', KEY_EQUALS }, { '+', KEY_EQUALS | CAPS_MASK }, { '[', KEY_LEFT_BRACKET }, { '{', KEY_LEFT_BRACKET | CAPS_MASK }, { ']', KEY_RIGHT_BRACKET }, { '}', KEY_RIGHT_BRACKET | CAPS_MASK }, { '\\', KEY_BACK_SLASH }, { '|', KEY_BACK_SLASH | CAPS_MASK }, { ';', KEY_SEMICOLON }, { ':', KEY_SEMICOLON | CAPS_MASK }, { '\'', KEY_QUOTE }, { '"', KEY_QUOTE | CAPS_MASK }, { ',', KEY_COMMA }, { '<', KEY_COMMA | CAPS_MASK }, { '.', KEY_DOT }, { '>', KEY_DOT | CAPS_MASK }, { '/', KEY_SLASH }, { '?', KEY_SLASH | CAPS_MASK }, { ' ', KEY_SPACE }
 };
 
-map<Uint32, Uint32> _keyCodeToChar;
+map<uint32_t, uint32_t> _keyCodeToChar;
 
 void initKeyCodeToChar() {
     _keyCodeToChar.clear();
-    for (std::map<Uint32, Uint32>::iterator it = _characterMap.begin(); it != _characterMap.end(); ++it) {
+    for (std::map<uint32_t, uint32_t>::iterator it = _characterMap.begin(); it != _characterMap.end(); ++it) {
         _keyCodeToChar[it->second] = it->first;
     }
 }
 
-Uint16 keyCodeToCharacter(const Uint32& keyCode) {
+uint16_t keyCodeToCharacter(const uint32_t& keyCode) {
     if (_keyCodeToChar.size() == 0) { //init data if it is empty
         initKeyCodeToChar();
     }

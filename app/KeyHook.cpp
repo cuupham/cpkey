@@ -26,10 +26,10 @@ static HHOOK mouseHook;
 static HWINEVENTHOOK foregroundHook;
 static vKeyHookState* engineState;
 
-static Uint32 modifiers = 0, lastModifiers = 0;
+static uint32_t modifiers = 0, lastModifiers = 0;
 static bool isModifierKey = false;
 static bool justUsedHotKey = false;
-static Uint16 keyCode = 0;
+static uint16_t keyCode = 0;
 
 // The language the user picked outside any app rule; restored when leaving a ruled app.
 static int baseLanguage = LANGUAGE_VIETNAMESE;
@@ -45,7 +45,7 @@ static VOID CALLBACK foregroundEventProcess(HWINEVENTHOOK, DWORD, HWND, LONG, LO
 
 /*---------------------- sending input ----------------------*/
 
-static void fillKeyEvent(INPUT& input, Uint16 virtualKey, bool press, DWORD flags = 0) {
+static void fillKeyEvent(INPUT& input, uint16_t virtualKey, bool press, DWORD flags = 0) {
 	input.type = INPUT_KEYBOARD;
 	input.ki.dwFlags = press ? flags : flags | KEYEVENTF_KEYUP;
 	input.ki.wVk = virtualKey;
@@ -54,7 +54,7 @@ static void fillKeyEvent(INPUT& input, Uint16 virtualKey, bool press, DWORD flag
 	input.ki.dwExtraInfo = 1; // marks our own events so the hook ignores them
 }
 
-static void fillUnicodeEvent(INPUT& input, Uint16 character, bool press) {
+static void fillUnicodeEvent(INPUT& input, uint16_t character, bool press) {
 	input.type = INPUT_KEYBOARD;
 	input.ki.wVk = 0;
 	input.ki.wScan = character;
@@ -63,20 +63,20 @@ static void fillUnicodeEvent(INPUT& input, Uint16 character, bool press) {
 	input.ki.dwExtraInfo = 1;
 }
 
-static void sendVirtualKey(Uint16 virtualKey) {
+static void sendVirtualKey(uint16_t virtualKey) {
 	fillKeyEvent(keyEvents[0], virtualKey, true);
 	fillKeyEvent(keyEvents[1], virtualKey, false);
 	SendInput(2, keyEvents, sizeof(INPUT));
 }
 
-static void sendUnicode(Uint16 character) {
+static void sendUnicode(uint16_t character) {
 	fillUnicodeEvent(keyEvents[0], character, true);
 	fillUnicodeEvent(keyEvents[1], character, false);
 	SendInput(2, keyEvents, sizeof(INPUT));
 }
 
 // Presses `modifier`, taps `key`, releases `modifier`.
-static void sendCombo(Uint16 modifier, Uint16 key, DWORD modifierFlags = 0, DWORD keyFlags = 0) {
+static void sendCombo(uint16_t modifier, uint16_t key, DWORD modifierFlags = 0, DWORD keyFlags = 0) {
 	fillKeyEvent(keyEvents[0], modifier, true, modifierFlags);
 	SendInput(1, keyEvents, sizeof(INPUT));
 
@@ -89,16 +89,16 @@ static void sendCombo(Uint16 modifier, Uint16 key, DWORD modifierFlags = 0, DWOR
 }
 
 // `data` is either a key code from the engine or a finished character (CHAR_CODE_MASK).
-static void sendKeyCode(Uint32 data) {
+static void sendKeyCode(uint32_t data) {
 	if (data & CHAR_CODE_MASK) {
-		sendUnicode((Uint16)data);
+		sendUnicode((uint16_t)data);
 		return;
 	}
-	Uint16 character = keyCodeToCharacter(data);
+	uint16_t character = keyCodeToCharacter(data);
 	if (character) {
 		sendUnicode(character);
 	} else {
-		sendVirtualKey((Uint16)data);
+		sendVirtualKey((uint16_t)data);
 	}
 }
 
@@ -115,10 +115,10 @@ static void sendEmptyCharacter() {
 
 // Pastes the new text through the clipboard (Shift+Insert) instead of typing it key by key.
 static void sendByClipboard() {
-	Byte code = engineState->code;
+	uint8_t code = engineState->code;
 	vector<WCHAR> text;
 	for (int i = engineState->newCharCount - 1; i >= 0; i--) {
-		Uint32 data = engineState->charData[i];
+		uint32_t data = engineState->charData[i];
 		bool isKeyCode = !(data & PURE_CHARACTER_MASK) && !(data & CHAR_CODE_MASK);
 		text.push_back(isKeyCode ? keyCodeToCharacter(data) : (WCHAR)data);
 	}
@@ -152,8 +152,8 @@ static void applyQuickTyping() {
 		engineState->backspaceCount++;
 	}
 	sendBackspaces(engineState->backspaceCount);
-	for (Uint32 code : engineState->macroData) {
-		sendUnicode((Uint16)code);
+	for (uint32_t code : engineState->macroData) {
+		sendUnicode((uint16_t)code);
 	}
 	sendKeyCode(keyCode | (modifiers & MASK_SHIFT ? CAPS_MASK : 0));
 }
@@ -205,8 +205,8 @@ bool toggleLanguage() {
 
 /*---------------------- hook life cycle ----------------------*/
 
-static Uint32 readModifierState() {
-	Uint32 state = 0;
+static uint32_t readModifierState() {
+	uint32_t state = 0;
 	if (GetKeyState(VK_LSHIFT) < 0 || GetKeyState(VK_RSHIFT) < 0) state |= MASK_SHIFT;
 	if (GetKeyState(VK_LCONTROL) < 0 || GetKeyState(VK_RCONTROL) < 0) state |= MASK_CONTROL;
 	if (GetKeyState(VK_LMENU) < 0 || GetKeyState(VK_RMENU) < 0) state |= MASK_ALT;
@@ -249,7 +249,7 @@ void keyHookFree() {
 
 /*---------------------- keyboard hook ----------------------*/
 
-static Uint32 modifierBit(Uint16 virtualKey) {
+static uint32_t modifierBit(uint16_t virtualKey) {
 	switch (virtualKey) {
 		case VK_LSHIFT:
 		case VK_RSHIFT: return MASK_SHIFT;
@@ -270,7 +270,7 @@ static bool hasControlModifier() {
 }
 
 // 0 none, 1 shift, 2 caps lock (shift and caps lock cancel out).
-static Uint8 capsStatus() {
+static uint8_t capsStatus() {
 	bool shift = modifiers & MASK_SHIFT, caps = modifiers & MASK_CAPITAL;
 	return (shift && caps) ? 0 : (shift ? 1 : (caps ? 2 : 0));
 }
@@ -320,7 +320,7 @@ static bool handleEnglishKey(bool isKeyDown) {
 
 // Sends the engine's result to the app. Returns true when the key was consumed.
 static bool applyEngineResult() {
-	Byte code = engineState->code;
+	uint8_t code = engineState->code;
 	if (code == vReplaceMacro) {
 		applyQuickTyping();
 		return true;
@@ -375,7 +375,7 @@ static LRESULT CALLBACK keyboardHookProcess(int nCode, WPARAM wParam, LPARAM lPa
 
 	bool isKeyDown = wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN;
 	bool isKeyUp = wParam == WM_KEYUP || wParam == WM_SYSKEYUP;
-	Uint32 bit = modifierBit((Uint16)input->vkCode);
+	uint32_t bit = modifierBit((uint16_t)input->vkCode);
 	if (isKeyDown) {
 		// The caps lock state can change without a key press we see, so read the real state before each key.
 		modifiers = GetKeyState(VK_CAPITAL) == 1 ? modifiers | MASK_CAPITAL : modifiers & ~MASK_CAPITAL;
@@ -386,7 +386,7 @@ static LRESULT CALLBACK keyboardHookProcess(int nCode, WPARAM wParam, LPARAM lPa
 		isModifierKey = bit != 0;
 	}
 	if (!isModifierKey && !isKeyUp) {
-		keyCode = (Uint16)input->vkCode;
+		keyCode = (uint16_t)input->vkCode;
 	}
 
 	if (isKeyDown && !isModifierKey && keyCode != 0) {

@@ -234,7 +234,7 @@ void MainControlDialog::setSwitchKeyText(const UINT16& keyCode) {
 	} else if (keyCode == EMPTY_SWITCH_KEY) {
 		SetWindowText(textSwitchKey, _T(""));
 	} else {
-		Uint16 key[] = { keyCode, 0 };
+		uint16_t key[] = { keyCode, 0 };
 		SetWindowText(textSwitchKey, (LPCWSTR)&key);
 	}
 }
