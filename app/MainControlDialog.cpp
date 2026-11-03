@@ -3,19 +3,39 @@
 #include "AppRules.h"
 #include "QuickTyping.h"
 #include "QuickTypingDialog.h"
+#include "DarkTheme.h"
 #include <shlobj.h>
 
 // Height of the collapsible "Nâng cao" block in dialog units; keep in sync with app.rc.
-#define ADVANCED_BLOCK_HEIGHT 36
+#define ADVANCED_BLOCK_HEIGHT 73
+#define TOOLTIP_MAX_WIDTH     300
 
 static const int ADVANCED_CONTROLS[] = {
+	IDC_HEADING_ADVANCED,
+	IDC_CARD_ADVANCED,
 	IDC_CHECK_FIX_RECOMMEND_BROWSER,
 	IDC_CHECK_FIX_CHROMIUM,
 	IDC_CHECK_SEND_BY_CLIPBOARD,
 };
 
 // Controls below the advanced block; they move when it opens or closes.
-static const int FOOTER_CONTROLS[] = { IDC_BUTTON_DEFAULT, IDC_BUTTON_OK };
+static const int FOOTER_CONTROLS[] = { IDC_BUTTON_DEFAULT, IDC_BUTTON_ADVANCED, IDC_BUTTON_OK };
+
+static const int HEADINGS[] = { IDC_HEADING_TYPING, IDC_HEADING_SPELLING, IDC_HEADING_SYSTEM, IDC_HEADING_ADVANCED };
+
+static const LPCTSTR SWITCH_KEY_PLACEHOLDER = _T("phím");
+
+struct Tooltip {
+	int controlId;
+	LPCTSTR text;
+};
+
+static const Tooltip TOOLTIPS[] = {
+	{ IDC_BUTTON_APP_RULES, _T("Đặt riêng chế độ Anh/Việt cho từng ứng dụng. Ứng dụng chưa có quy tắc dùng chế độ mặc định.") },
+	{ IDC_EDIT_SWITCH_KEY, _T("Phím phụ, tùy chọn. Để trống nếu chỉ dùng Ctrl, Alt, Win, Shift.") },
+	{ IDC_CHECK_MODERN_ORTHOGRAPHY, _T("Đặt dấu kiểu mới: oà, uý thay vì òa, úy.") },
+	{ IDC_CHECK_ALLOW_ZJWF, _T("Cho phép z, w, j, f làm phụ âm đầu của từ.") },
+};
 
 struct SwitchKeyOption {
 	int controlId;
@@ -75,6 +95,11 @@ void MainControlDialog::initDialog() {
 		SendMessage(comboBoxInputType, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(name));
 	}
 	textSwitchKey = GetDlgItem(hDlg, IDC_EDIT_SWITCH_KEY);
+	DarkTheme::setPlaceholder(textSwitchKey, SWITCH_KEY_PLACEHOLDER);
+	for (int controlId : HEADINGS) {
+		DarkTheme::setHeading(GetDlgItem(hDlg, controlId));
+	}
+	addTooltips();
 	setAdvancedOpen(false);
 	refresh();
 }
@@ -101,13 +126,27 @@ void MainControlDialog::setAdvancedOpen(bool open) {
 	SetDlgItemText(hDlg, IDC_BUTTON_ADVANCED, open ? _T("Nâng cao ▾") : _T("Nâng cao ▸"));
 }
 
+void MainControlDialog::addTooltips() {
+	HWND tooltip = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_ALWAYSTIP | TTS_NOPREFIX,
+	                              0, 0, 0, 0, hDlg, NULL, hInstance, NULL);
+	SendMessage(tooltip, TTM_SETMAXTIPWIDTH, 0, TOOLTIP_MAX_WIDTH);
+	for (const Tooltip& entry : TOOLTIPS) {
+		TTTOOLINFO tool = { sizeof(tool) };
+		tool.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+		tool.hwnd = hDlg;
+		tool.uId = (UINT_PTR)GetDlgItem(hDlg, entry.controlId);
+		tool.lpszText = (LPTSTR)entry.text;
+		SendMessage(tooltip, TTM_ADDTOOL, 0, (LPARAM)&tool);
+	}
+}
+
 void MainControlDialog::updateRulesButton() {
 	size_t appRuleCount = getAllAppRules().size();
-	wstring appRules = appRuleCount ? L"Quản lý (" + to_wstring(appRuleCount) + L")..." : L"Quản lý...";
+	wstring appRules = appRuleCount ? L"Theo ứng dụng (" + to_wstring(appRuleCount) + L")" : L"Theo ứng dụng";
 	SetDlgItemText(hDlg, IDC_BUTTON_APP_RULES, appRules.c_str());
 
 	size_t quickCount = getQuickTyping().size();
-	wstring quickTyping = quickCount ? L"Tùy chỉnh (" + to_wstring(quickCount) + L")..." : L"Tùy chỉnh...";
+	wstring quickTyping = quickCount ? L"Tùy chỉnh (" + to_wstring(quickCount) + L")" : L"Tùy chỉnh";
 	SetDlgItemText(hDlg, IDC_BUTTON_QUICK_TYPING, quickTyping.c_str());
 }
 

@@ -10,6 +10,7 @@ class MainControlDialog : public BaseDialog {
   private:
 	void initDialog();
 	void setAdvancedOpen(bool open);
+	void addTooltips();
 	void updateRulesButton();
 	void onCheckboxClicked(int controlId);
 	void onSwitchKeyPressed(const UINT16& keyCode);

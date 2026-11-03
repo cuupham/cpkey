@@ -1,6 +1,9 @@
 #include "BaseDialog.h"
+#include "DarkTheme.h"
 
 INT_PTR CALLBACK BaseDialog::dialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	INT_PTR themed;
+	if (DarkTheme::handleMessage(hDlg, uMsg, wParam, lParam, themed)) return themed;
 	if (uMsg == WM_INITDIALOG) {
 		SetWindowLongPtr(hDlg, GWLP_USERDATA, lParam);
 	}

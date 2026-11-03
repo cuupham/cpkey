@@ -26,7 +26,7 @@ int App::run(HINSTANCE instance) {
 		return 0;
 	}
 
-	INITCOMMONCONTROLSEX controls = { sizeof(controls), ICC_LISTVIEW_CLASSES };
+	INITCOMMONCONTROLSEX controls = { sizeof(controls), ICC_LISTVIEW_CLASSES | ICC_BAR_CLASSES };
 	InitCommonControlsEx(&controls);
 
 	keyHookInit();

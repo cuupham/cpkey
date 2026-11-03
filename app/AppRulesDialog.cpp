@@ -2,6 +2,7 @@
 #include "AppRules.h"
 #include "App.h"
 #include "ListViewHelper.h"
+#include "DarkTheme.h"
 #include <commdlg.h>
 
 #define WINDOW_TITLE_SIZE 256
@@ -68,6 +69,8 @@ static void browseExe(HWND hDlg, PickState& state) {
 }
 
 static INT_PTR CALLBACK pickAppProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	INT_PTR themed;
+	if (DarkTheme::handleMessage(hDlg, uMsg, wParam, lParam, themed)) return themed;
 	PickState* state = (PickState*)GetWindowLongPtr(hDlg, GWLP_USERDATA);
 	switch (uMsg) {
 		case WM_INITDIALOG: {

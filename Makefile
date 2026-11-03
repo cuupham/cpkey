@@ -14,7 +14,7 @@ CXXFLAGS := -std=gnu++14 -Os $(DEFINES) -fno-exceptions -fno-rtti -ffunction-sec
 # `{ 0 }` zero-initialises Win32 structs on purpose; the engine compares signed and unsigned sizes.
 WARNINGS := -Wall -Wextra -Wshadow -Wno-missing-field-initializers -Wno-unused-parameter -Wno-sign-compare -Wno-conversion-null
 LDFLAGS := -mwindows -municode -static -s -Wl,--gc-sections
-LIBS := -lcomctl32 -lcomdlg32 -limm32 -lshell32 -ladvapi32 -lpsapi -lgdi32
+LIBS := -lcomctl32 -lcomdlg32 -limm32 -lshell32 -ladvapi32 -lpsapi -lgdi32 -ldwmapi -luxtheme
 
 all: $(TARGET)
 

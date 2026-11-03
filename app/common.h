@@ -30,6 +30,9 @@ using namespace std;
 #define APP_NAME  _T(APP_NAME_TEXT)
 #define APP_CLASS APP_NAME _T("VietnameseInputMethod")
 
+// Capacity of the stack buffers that hold control text.
+#define TEXT_BUFFER 256
+
 // Sent to the running instance to open its control panel.
 #define WM_SHOW_CONTROL_PANEL (WM_USER + 2019)
 

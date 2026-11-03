@@ -1,8 +1,7 @@
 #include "QuickTypingDialog.h"
 #include "QuickTyping.h"
 #include "ListViewHelper.h"
-
-#define TEXT_BUFFER 256
+#include "DarkTheme.h"
 
 static HWND listOf(HWND hDlg) {
 	return GetDlgItem(hDlg, IDC_LIST_QUICK_TYPING);
@@ -115,6 +114,8 @@ static void onExample(HWND hDlg) {
 }
 
 static INT_PTR CALLBACK quickTypingProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	INT_PTR themed;
+	if (DarkTheme::handleMessage(hDlg, uMsg, wParam, lParam, themed)) return themed;
 	switch (uMsg) {
 		case WM_INITDIALOG: {
 			HICON icon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_APP_ICON));

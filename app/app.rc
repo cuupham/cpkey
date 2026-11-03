@@ -15,54 +15,57 @@ IDI_ICON_STATUS_ENG_10  ICON    "StatusEng10.ico"
 
 1 RT_MANIFEST "app.manifest"
 
+// Cards are empty group boxes painted by DarkTheme; WS_CLIPSIBLINGS keeps them from covering the controls on top.
 // Vertical layout below is mirrored by ADVANCED_BLOCK_HEIGHT in MainControlDialog.cpp:
-// the footer sits at y=284 collapsed and moves down when "Nâng cao" opens.
-IDD_DIALOG_MAIN DIALOGEX 0, 0, 297, 309
+// the footer sits at y=257 collapsed and moves down when "Nâng cao" opens.
+// Text after a tab in a check box is a dimmed detail.
+IDD_DIALOG_MAIN DIALOGEX 0, 0, 297, 278
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SHELLFONT | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 FONT 9, "Segoe UI", 400, 0, 0x1
 BEGIN
-    LTEXT           "Theo ứng dụng:",IDC_STATIC,14,10,60,8
-    PUSHBUTTON      "Quản lý...",IDC_BUTTON_APP_RULES,80,6,110,15
+    LTEXT           "Bộ gõ",IDC_HEADING_TYPING,7,7,100,10
+    GROUPBOX        "",IDC_STATIC,7,20,283,99,WS_CLIPSIBLINGS
+    LTEXT           "Kiểu gõ",IDC_STATIC,15,28,62,10
+    COMBOBOX        IDC_COMBO_INPUT_TYPE,80,26,80,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Chế độ mặc định",IDC_STATIC,15,46,62,10
+    CONTROL         "Tiếng Việt",IDC_RADIO_METHOD_VIETNAMESE,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,80,46,50,10
+    CONTROL         "Tiếng Anh",IDC_RADIO_METHOD_ENGLISH,"Button",BS_AUTORADIOBUTTON,132,46,55,10
+    PUSHBUTTON      "Theo ứng dụng",IDC_BUTTON_APP_RULES,190,44,92,14,WS_GROUP
+    LTEXT           "Phím chuyển",IDC_STATIC,15,64,62,10
+    CONTROL         "Ctrl",IDC_CHECK_SWITCH_KEY_CTRL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,80,64,34,10
+    CONTROL         "Alt",IDC_CHECK_SWITCH_KEY_ALT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,114,64,30,10
+    CONTROL         "Win",IDC_CHECK_SWITCH_KEY_WIN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,144,64,33,10
+    CONTROL         "Shift",IDC_CHECK_SWITCH_KEY_SHIFT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,177,64,36,10
+    LTEXT           "+",IDC_STATIC,215,64,6,10
+    EDITTEXT        IDC_EDIT_SWITCH_KEY,223,62,26,14,ES_CENTER | ES_AUTOHSCROLL
+    CONTROL         "Bíp",IDC_CHECK_SWITCH_KEY_BEEP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,252,64,30,10
+    CONTROL         "Dấu kiểu mới\t(oà, uý)",IDC_CHECK_MODERN_ORTHOGRAPHY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,86,130,10
+    CONTROL         "Viết hoa đầu câu",IDC_CHECK_CAPS_FIRST_CHAR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,150,86,132,10
+    CONTROL         "Gõ nhanh",IDC_CHECK_QUICK_TYPING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,101,130,10
+    PUSHBUTTON      "Tùy chỉnh",IDC_BUTTON_QUICK_TYPING,190,99,92,14
 
-    GROUPBOX        "Bộ gõ",IDC_STATIC,7,28,283,112
-    LTEXT           "Kiểu gõ:",IDC_STATIC,14,42,60,8
-    COMBOBOX        IDC_COMBO_INPUT_TYPE,80,39,80,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Chế độ mặc định:",IDC_STATIC,14,58,64,8
-    CONTROL         "Tiếng Việt",IDC_RADIO_METHOD_VIETNAMESE,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,80,57,55,10
-    CONTROL         "Tiếng Anh",IDC_RADIO_METHOD_ENGLISH,"Button",BS_AUTORADIOBUTTON,140,57,55,10
-    LTEXT           "Áp dụng cho mọi ứng dụng chưa có quy tắc.",IDC_STATIC,80,67,200,8,WS_GROUP
-    LTEXT           "Phím chuyển:",IDC_STATIC,14,80,60,8
-    CONTROL         "Ctrl",IDC_CHECK_SWITCH_KEY_CTRL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,80,79,27,10
-    CONTROL         "Alt",IDC_CHECK_SWITCH_KEY_ALT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,110,79,25,10
-    CONTROL         "Win",IDC_CHECK_SWITCH_KEY_WIN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,138,79,28,10
-    CONTROL         "Shift",IDC_CHECK_SWITCH_KEY_SHIFT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,169,79,31,10
-    LTEXT           "+ phím",IDC_STATIC,203,80,24,8
-    EDITTEXT        IDC_EDIT_SWITCH_KEY,229,77,22,12,ES_CENTER | ES_AUTOHSCROLL
-    CONTROL         "Bíp",IDC_CHECK_SWITCH_KEY_BEEP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,257,79,28,10
-    LTEXT           "Để trống ô phím nếu chỉ dùng tổ hợp Ctrl, Alt, Win, Shift.",IDC_STATIC,80,91,200,8
-    CONTROL         "Đặt dấu kiểu mới (oà, uý thay vì òa, úy)",IDC_CHECK_MODERN_ORTHOGRAPHY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,102,266,10
-    CONTROL         "Viết hoa chữ cái đầu câu",IDC_CHECK_CAPS_FIRST_CHAR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,114,266,10
-    CONTROL         "Gõ nhanh",IDC_CHECK_QUICK_TYPING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,126,100,10
-    PUSHBUTTON      "Tùy chỉnh...",IDC_BUTTON_QUICK_TYPING,205,124,78,13
+    LTEXT           "Chính tả",IDC_HEADING_SPELLING,7,127,100,10
+    GROUPBOX        "",IDC_STATIC,7,140,283,50,WS_CLIPSIBLINGS
+    CONTROL         "Kiểm tra chính tả",IDC_CHECK_SPELLING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,146,267,10
+    CONTROL         "Tự khôi phục khi sai",IDC_CHECK_RESTORE_IF_WRONG_SPELLING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,27,160,120,10
+    CONTROL         "Cho phép z, w, j, f",IDC_CHECK_ALLOW_ZJWF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,150,160,132,10
+    CONTROL         "Tạm tắt khi giữ Ctrl",IDC_CHECK_TEMP_OFF_SPELLING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,27,174,120,10
 
-    GROUPBOX        "Chính tả",IDC_STATIC,7,144,283,62
-    CONTROL         "Kiểm tra chính tả",IDC_CHECK_SPELLING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,156,266,10
-    CONTROL         "Tự khôi phục phím khi từ sai",IDC_CHECK_RESTORE_IF_WRONG_SPELLING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,28,168,252,10
-    CONTROL         "Cho phép z, w, j, f làm phụ âm đầu",IDC_CHECK_ALLOW_ZJWF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,28,180,252,10
-    CONTROL         "Tạm tắt chính tả khi giữ phím Ctrl",IDC_CHECK_TEMP_OFF_SPELLING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,28,192,252,10
+    LTEXT           "Hệ thống",IDC_HEADING_SYSTEM,7,198,100,10
+    GROUPBOX        "",IDC_STATIC,7,211,283,36,WS_CLIPSIBLINGS
+    CONTROL         "Khởi động cùng Windows",IDC_CHECK_RUN_WITH_WINDOWS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,217,130,10
+    CONTROL         "Biểu tượng khay Win 10",IDC_CHECK_GRAY_ICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,150,217,132,10
+    CONTROL         "Chạy quyền Admin\tđể gõ được trong ứng dụng chạy quyền cao",IDC_CHECK_RUN_AS_ADMIN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,231,267,10
 
-    GROUPBOX        "Hệ thống",IDC_STATIC,7,210,283,50
-    CONTROL         "Khởi động cùng Windows",IDC_CHECK_RUN_WITH_WINDOWS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,222,266,10
-    CONTROL         "Chạy với quyền Admin (để gõ được trong ứng dụng chạy quyền cao)",IDC_CHECK_RUN_AS_ADMIN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,234,266,10
-    CONTROL         "Biểu tượng khay kiểu Windows 10",IDC_CHECK_GRAY_ICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,246,266,10
+    LTEXT           "Nâng cao",IDC_HEADING_ADVANCED,7,257,100,10
+    GROUPBOX        "",IDC_CARD_ADVANCED,7,270,283,50,WS_CLIPSIBLINGS
+    CONTROL         "Sửa lỗi trùng chữ\tở thanh địa chỉ và Excel",IDC_CHECK_FIX_RECOMMEND_BROWSER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,276,267,10
+    CONTROL         "Dùng cách riêng cho Chrome, Edge, Brave",IDC_CHECK_FIX_CHROMIUM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,27,290,255,10
+    CONTROL         "Gửi chữ bằng Clipboard\tchậm hơn, dùng khi cách thường lỗi",IDC_CHECK_SEND_BY_CLIPBOARD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,304,267,10
 
-    PUSHBUTTON      "Nâng cao",IDC_BUTTON_ADVANCED,7,264,70,14
-    CONTROL         "Sửa lỗi trùng chữ ở thanh địa chỉ và Excel",IDC_CHECK_FIX_RECOMMEND_BROWSER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,282,266,10
-    CONTROL         "Dùng cách riêng cho Chrome, Edge, Brave",IDC_CHECK_FIX_CHROMIUM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,28,294,252,10
-    CONTROL         "Gửi chữ bằng Clipboard (chậm hơn, dùng khi cách thường lỗi)",IDC_CHECK_SEND_BY_CLIPBOARD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,306,266,10
-
-    PUSHBUTTON      "Cài đặt gốc...",IDC_BUTTON_DEFAULT,7,284,70,18
-    DEFPUSHBUTTON   "Đóng",IDC_BUTTON_OK,220,284,70,18
+    PUSHBUTTON      "Cài đặt gốc",IDC_BUTTON_DEFAULT,7,257,70,14
+    PUSHBUTTON      "Nâng cao",IDC_BUTTON_ADVANCED,164,257,70,14
+    DEFPUSHBUTTON   "Đóng",IDC_BUTTON_OK,240,257,50,14
 END
 
 IDD_DIALOG_APP_RULES DIALOGEX 0, 0, 260, 190

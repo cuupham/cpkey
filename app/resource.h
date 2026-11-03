@@ -48,6 +48,11 @@
 #define IDC_CHECK_GRAY_ICON           1033
 #define IDC_BUTTON_QUICK_TYPING         1034
 #define IDC_CHECK_QUICK_TYPING          1035
+#define IDC_HEADING_TYPING              1040
+#define IDC_HEADING_SPELLING            1041
+#define IDC_HEADING_SYSTEM              1042
+#define IDC_HEADING_ADVANCED            1043
+#define IDC_CARD_ADVANCED               1044
 
 // app rules dialog
 #define IDC_LIST_APP_RULES              1100
