@@ -1,8 +1,8 @@
 #pragma once
 
 #define APP_NAME_TEXT                   "CPKey"
-#define APP_VERSION_NUMBERS             1,0,0,0
-#define APP_VERSION_TEXT                "1.0.0.0"
+#define APP_VERSION_NUMBERS             1,1,0,0
+#define APP_VERSION_TEXT                "1.1.0.0"
 
 #define IDI_APP_ICON                    1
 #define IDI_ICON_STATUS_VIET            2
