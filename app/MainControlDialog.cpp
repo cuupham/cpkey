@@ -19,7 +19,7 @@ static const int ADVANCED_CONTROLS[] = {
 };
 
 // Controls below the advanced block; they move when it opens or closes.
-static const int FOOTER_CONTROLS[] = { IDC_BUTTON_DEFAULT, IDC_BUTTON_ADVANCED, IDC_BUTTON_OK };
+static const int FOOTER_CONTROLS[] = { IDC_BUTTON_DEFAULT, IDC_BUTTON_ADVANCED, IDC_BUTTON_QUIT, IDC_BUTTON_OK };
 
 static const int HEADINGS[] = { IDC_HEADING_TYPING, IDC_HEADING_SPELLING, IDC_HEADING_SYSTEM, IDC_HEADING_ADVANCED };
 
@@ -32,9 +32,12 @@ struct Tooltip {
 
 static const Tooltip TOOLTIPS[] = {
 	{ IDC_BUTTON_APP_RULES, _T("Đặt riêng chế độ Anh/Việt cho từng ứng dụng. Ứng dụng chưa có quy tắc dùng chế độ mặc định.") },
+	{ IDC_BUTTON_QUIT, _T("Thoát hẳn CPKey, không chỉ đóng bảng này.") },
 	{ IDC_EDIT_SWITCH_KEY, _T("Phím phụ, tùy chọn. Để trống nếu chỉ dùng Ctrl, Alt, Win, Shift.") },
+	{ IDC_CHECK_QUICK_TYPING, _T("Gõ tắt theo chuỗi tự đặt. Bấm vào chữ để thêm hoặc sửa.") },
 	{ IDC_CHECK_MODERN_ORTHOGRAPHY, _T("Đặt dấu kiểu mới: oà, uý thay vì òa, úy.") },
 	{ IDC_CHECK_ALLOW_ZJWF, _T("Cho phép z, w, j, f làm phụ âm đầu của từ.") },
+	{ IDC_CHECK_RUN_AS_ADMIN, _T("Để gõ được trong ứng dụng chạy quyền cao.") },
 };
 
 struct SwitchKeyOption {
@@ -98,6 +101,7 @@ void MainControlDialog::initDialog() {
 	for (int controlId : HEADINGS) {
 		DarkTheme::setHeading(GetDlgItem(hDlg, controlId));
 	}
+	DarkTheme::setLabelCommand(GetDlgItem(hDlg, IDC_CHECK_QUICK_TYPING), IDC_LABEL_QUICK_TYPING);
 	addTooltips();
 	setAdvancedOpen(false);
 	vRunWithWindows = Os::isRunOnStartupRegistered(); // may have changed outside the app since it started
@@ -146,8 +150,8 @@ void MainControlDialog::updateRulesButton() {
 	SetDlgItemText(hDlg, IDC_BUTTON_APP_RULES, appRules.c_str());
 
 	size_t quickCount = getQuickTyping().size();
-	wstring quickTyping = quickCount ? L"Tùy chỉnh (" + to_wstring(quickCount) + L")" : L"Tùy chỉnh";
-	SetDlgItemText(hDlg, IDC_BUTTON_QUICK_TYPING, quickTyping.c_str());
+	wstring quickTyping = quickCount ? L"Gõ nhanh (" + to_wstring(quickCount) + L")" : L"Gõ nhanh";
+	SetDlgItemText(hDlg, IDC_CHECK_QUICK_TYPING, quickTyping.c_str());
 }
 
 INT_PTR MainControlDialog::eventProc(HWND dialog, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -168,12 +172,15 @@ INT_PTR MainControlDialog::eventProc(HWND dialog, UINT uMsg, WPARAM wParam, LPAR
 				case IDC_BUTTON_APP_RULES:
 					App::getInstance()->onAppRules();
 					break;
-				case IDC_BUTTON_QUICK_TYPING:
+				case IDC_LABEL_QUICK_TYPING:
 					showQuickTypingDialog(hInstance, hDlg);
 					refresh();
 					break;
 				case IDC_BUTTON_ADVANCED:
 					setAdvancedOpen(!advancedOpen);
+					break;
+				case IDC_BUTTON_QUIT:
+					App::getInstance()->onExit();
 					break;
 				case IDC_BUTTON_DEFAULT:
 					if (MessageBox(hDlg, _T("Đặt lại cài đặt gốc?"), APP_NAME,

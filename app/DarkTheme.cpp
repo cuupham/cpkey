@@ -1,6 +1,7 @@
 #include "DarkTheme.h"
 #include <dwmapi.h>
 #include <uxtheme.h>
+#include <windowsx.h>
 
 namespace DarkTheme {
 namespace {
@@ -61,6 +62,8 @@ struct State {
 	bool hot;
 	HFONT ownedFont;
 	LPCTSTR placeholder;
+	UINT labelCommand = 0; // check box only: sent to the parent when the label is clicked
+	bool labelPressed = false;
 };
 
 HBRUSH brushOf(COLORREF color) {
@@ -148,12 +151,33 @@ void paintBuffered(HWND window, Draw draw) {
 	EndPaint(window, &paint);
 }
 
-void paintToggle(HWND window, HDC dc, RECT rect, bool radio) {
+RECT toggleBox(HWND window, RECT rect) {
+	int size = scaled(window, TOGGLE_SIZE);
+	int ring = scaled(window, FOCUS_RING);
+	int top = (rect.bottom - size) / 2;
+	return { ring, top, ring + size, top + size };
+}
+
+POINT pointOf(LPARAM position) {
+	return { GET_X_LPARAM(position), GET_Y_LPARAM(position) };
+}
+
+// Clicks on the label of a check box do not toggle it: only the box (with its focus ring) does.
+bool onToggleBox(HWND window, POINT position) {
+	RECT client;
+	GetClientRect(window, &client);
+	RECT hit = toggleBox(window, client);
+	int ring = scaled(window, FOCUS_RING);
+	InflateRect(&hit, ring, ring);
+	return PtInRect(&hit, position);
+}
+
+void paintToggle(HWND window, HDC dc, RECT rect, bool radio, bool underlineLabel) {
 	bool enabled = IsWindowEnabled(window);
 	bool checked = SendMessage(window, BM_GETCHECK, 0, 0) == BST_CHECKED;
 	int size = scaled(window, TOGGLE_SIZE);
 	int ring = scaled(window, FOCUS_RING);
-	RECT box = { ring, (rect.bottom - size) / 2, ring + size, (rect.bottom - size) / 2 + size };
+	RECT box = toggleBox(window, rect);
 
 	COLORREF fill = checked ? (enabled ? ACCENT : DISABLED_EDGE) : (enabled ? FIELD : DISABLED_FILL);
 	COLORREF edge = checked ? fill : (enabled ? CONTROL_EDGE : DISABLED_EDGE);
@@ -183,7 +207,20 @@ void paintToggle(HWND window, HDC dc, RECT rect, bool radio) {
 	LPTSTR detail = _tcschr(text, _T('\t'));
 	if (detail) *detail++ = 0;
 	RECT label = { box.right + scaled(window, TOGGLE_GAP), 0, rect.right, rect.bottom };
+	HFONT underlined = NULL;
+	HGDIOBJ regular = NULL;
+	if (underlineLabel) {
+		LOGFONT font;
+		GetObject(GetCurrentObject(dc, OBJ_FONT), sizeof(font), &font);
+		font.lfUnderline = TRUE;
+		underlined = CreateFontIndirect(&font);
+		regular = SelectObject(dc, underlined);
+	}
 	drawText(dc, text, label, enabled ? TEXT_PRIMARY : TEXT_DISABLED, DT_VCENTER);
+	if (underlined) {
+		SelectObject(dc, regular);
+		DeleteObject(underlined);
+	}
 	if (detail) {
 		SIZE extent;
 		GetTextExtentPoint32(dc, text, lstrlen(text), &extent);
@@ -325,7 +362,7 @@ LRESULT CALLBACK controlProc(HWND window, UINT message, WPARAM wParam, LPARAM lP
 			switch (state->kind) {
 				case Kind::Check:
 				case Kind::Radio:
-					paintBuffered(window, [&](HDC dc, RECT rect) { paintToggle(window, dc, rect, state->kind == Kind::Radio); });
+					paintBuffered(window, [&](HDC dc, RECT rect) { paintToggle(window, dc, rect, state->kind == Kind::Radio, state->labelCommand != 0); });
 					return 0;
 				case Kind::Push:
 					paintBuffered(window, [&](HDC dc, RECT rect) { paintPush(window, dc, rect, *state); });
@@ -343,6 +380,41 @@ LRESULT CALLBACK controlProc(HWND window, UINT message, WPARAM wParam, LPARAM lP
 				}
 				default:
 					break;
+			}
+			break;
+		case WM_LBUTTONDOWN:
+		case WM_LBUTTONDBLCLK:
+			if (state->kind == Kind::Check && !onToggleBox(window, pointOf(lParam))) {
+				if (state->labelCommand) {
+					state->labelPressed = true;
+					SetCapture(window);
+				}
+				return 0;
+			}
+			break;
+		case WM_LBUTTONUP:
+			if (state->labelPressed) {
+				state->labelPressed = false;
+				ReleaseCapture();
+				RECT client;
+				GetClientRect(window, &client);
+				// Posted so the command runs after this handler, which a modal dialog would otherwise block.
+				if (PtInRect(&client, pointOf(lParam))) PostMessage(GetParent(window), WM_COMMAND, MAKEWPARAM(state->labelCommand, BN_CLICKED), (LPARAM)window);
+				return 0;
+			}
+			break;
+		case WM_CAPTURECHANGED:
+			state->labelPressed = false;
+			break;
+		case WM_SETCURSOR:
+			if (state->labelCommand) {
+				POINT cursor;
+				GetCursorPos(&cursor);
+				ScreenToClient(window, &cursor);
+				if (!onToggleBox(window, cursor)) {
+					SetCursor(LoadCursor(NULL, IDC_HAND));
+					return TRUE;
+				}
 			}
 			break;
 		case WM_MOUSEMOVE:
@@ -491,6 +563,10 @@ void setHeading(HWND label) {
 	HFONT heading = CreateFontIndirect(&font);
 	SetWindowSubclass(label, controlProc, SUBCLASS_ID, (DWORD_PTR) new State{ Kind::Heading, false, heading, NULL });
 	SendMessage(label, WM_SETFONT, (WPARAM)heading, TRUE);
+}
+
+void setLabelCommand(HWND check, UINT command) {
+	if (State* state = stateOf(check)) state->labelCommand = command;
 }
 
 void setPlaceholder(HWND edit, LPCTSTR text) {

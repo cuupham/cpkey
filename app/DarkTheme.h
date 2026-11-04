@@ -11,6 +11,10 @@ bool handleMessage(HWND dialog, UINT message, WPARAM wParam, LPARAM lParam, INT_
 // Section title: the dialog font in a heavier weight.
 void setHeading(HWND label);
 
+// Makes a click on the check box's label (not its box) send WM_COMMAND(`command`) to the parent, with a
+// hand cursor, and underlines the label so it reads as clickable. Does nothing when the dialog keeps the system theme.
+void setLabelCommand(HWND check, UINT command);
+
 // Dimmed hint shown inside an empty, unfocused edit box. `text` must outlive the window.
 void setPlaceholder(HWND edit, LPCTSTR text);
 

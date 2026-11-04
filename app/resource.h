@@ -25,6 +25,7 @@
 #define IDC_BUTTON_DEFAULT                  1002
 #define IDC_BUTTON_APP_RULES            1003
 #define IDC_BUTTON_ADVANCED             1006
+#define IDC_BUTTON_QUIT                 1007
 #define IDC_COMBO_INPUT_TYPE            1010
 #define IDC_CHECK_SWITCH_KEY_CTRL       1011
 #define IDC_CHECK_SWITCH_KEY_ALT        1012
@@ -46,7 +47,7 @@
 #define IDC_CHECK_FIX_CHROMIUM          1031
 #define IDC_CHECK_SEND_BY_CLIPBOARD         1032
 #define IDC_CHECK_GRAY_ICON           1033
-#define IDC_BUTTON_QUICK_TYPING         1034
+#define IDC_LABEL_QUICK_TYPING          1034 // command sent by a click on the "Gõ nhanh" label
 #define IDC_CHECK_QUICK_TYPING          1035
 #define IDC_HEADING_TYPING              1040
 #define IDC_HEADING_SPELLING            1041
