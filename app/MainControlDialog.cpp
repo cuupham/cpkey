@@ -64,7 +64,6 @@ static const CheckOption CHECK_OPTIONS[] = {
 	CHECK_OPTION(IDC_CHECK_FIX_RECOMMEND_BROWSER, vFixRecommendBrowser, false),
 	CHECK_OPTION(IDC_CHECK_CAPS_FIRST_CHAR, vUpperCaseFirstChar, false),
 	CHECK_OPTION(IDC_CHECK_QUICK_TYPING, vUseMacro, false),
-	CHECK_OPTION(IDC_CHECK_RUN_WITH_WINDOWS, vRunWithWindows, false),
 	CHECK_OPTION(IDC_CHECK_RUN_AS_ADMIN, vRunAsAdmin, false),
 	CHECK_OPTION(IDC_CHECK_SPELLING, vCheckSpelling, false),
 	CHECK_OPTION(IDC_CHECK_RESTORE_IF_WRONG_SPELLING, vRestoreIfWrongSpelling, false),
@@ -101,6 +100,7 @@ void MainControlDialog::initDialog() {
 	}
 	addTooltips();
 	setAdvancedOpen(false);
+	vRunWithWindows = Os::isRunOnStartupRegistered(); // may have changed outside the app since it started
 	refresh();
 }
 
@@ -222,6 +222,7 @@ void MainControlDialog::refresh() {
 	for (const CheckOption& option : CHECK_OPTIONS) {
 		setChecked(hDlg, option.controlId, (*option.value != 0) != option.inverted);
 	}
+	setChecked(hDlg, IDC_CHECK_RUN_WITH_WINDOWS, vRunWithWindows);
 
 	EnableWindow(GetDlgItem(hDlg, IDC_CHECK_RESTORE_IF_WRONG_SPELLING), vCheckSpelling);
 	EnableWindow(GetDlgItem(hDlg, IDC_CHECK_ALLOW_ZJWF), vCheckSpelling);
@@ -239,14 +240,17 @@ void MainControlDialog::onCheckboxClicked(int controlId) {
 		}
 	}
 
+	if (controlId == IDC_CHECK_RUN_WITH_WINDOWS) {
+		Os::registerRunOnStartup(checked);
+		return;
+	}
+
 	for (const CheckOption& option : CHECK_OPTIONS) {
 		if (option.controlId != controlId) continue;
 		*option.value = checked != option.inverted;
 		Os::setIntSetting(option.name, *option.value);
 		if (option.value == &vCheckSpelling) {
 			vSetCheckSpelling();
-		} else if (option.value == &vRunWithWindows) {
-			Os::registerRunOnStartup(vRunWithWindows);
 		} else if (option.value == &vRunAsAdmin) {
 			requestRestartAsAdmin();
 		}
@@ -282,8 +286,7 @@ void MainControlDialog::requestRestartAsAdmin() {
 	if (vRunAsAdmin && !IsUserAnAdmin()) {
 		if (MessageBox(hDlg, _T("Cần khởi động lại để chạy với quyền Admin. Khởi động lại ngay?"), APP_NAME,
 		               MB_ICONEXCLAMATION | MB_YESNO) == IDYES) {
-			// The elevated instance registers autostart again when it starts.
-			Os::registerRunOnStartup(false);
+			// The elevated instance moves the autostart entry to the Admin task when it starts.
 			// Quit first: the new instance exits if it still finds this one running.
 			App::getInstance()->onExit();
 			ShellExecute(0, L"runas", Os::getFullPath().c_str(), 0, 0, SW_SHOWNORMAL);
@@ -292,7 +295,6 @@ void MainControlDialog::requestRestartAsAdmin() {
 		// Declined: stay in the current mode so autostart keeps working.
 		APP_SET_DATA(vRunAsAdmin, 0);
 	}
-	Os::registerRunOnStartup(false);
 	if (vRunWithWindows) {
 		Os::registerRunOnStartup(true);
 	}

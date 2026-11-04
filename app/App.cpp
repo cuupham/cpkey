@@ -67,6 +67,7 @@ void App::refreshUi() {
 void App::onDefaultConfig() {
 #define RESET_SETTING(name, value) APP_SET_DATA(name, value);
 	PERSISTED_SETTINGS(RESET_SETTING)
+	Os::registerRunOnStartup(false);
 	setBaseLanguage(LANGUAGE_VIETNAMESE);
 	refreshUi();
 }
