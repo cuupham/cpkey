@@ -2,3 +2,5 @@
 
 #define DEFINE_SETTING(name, value) int name = value;
 PERSISTED_SETTINGS(DEFINE_SETTING)
+
+int vRunWithWindows = 0;

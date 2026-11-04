@@ -19,6 +19,7 @@ IDI_ICON_STATUS_ENG_10  ICON    "StatusEng10.ico"
 // Vertical layout below is mirrored by ADVANCED_BLOCK_HEIGHT in MainControlDialog.cpp:
 // the footer sits at y=257 collapsed and moves down when "Nâng cao" opens.
 // Text after a tab in a check box is a dimmed detail.
+// Only the box of a check box toggles. The label of "Gõ nhanh" opens its dialog instead (DarkTheme::setLabelCommand).
 IDD_DIALOG_MAIN DIALOGEX 0, 0, 297, 278
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SHELLFONT | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 FONT 9, "Segoe UI", 400, 0, 0x1
@@ -41,8 +42,7 @@ BEGIN
     CONTROL         "Bíp",IDC_CHECK_SWITCH_KEY_BEEP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,252,64,30,10
     CONTROL         "Dấu kiểu mới\t(oà, uý)",IDC_CHECK_MODERN_ORTHOGRAPHY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,86,130,10
     CONTROL         "Viết hoa đầu câu",IDC_CHECK_CAPS_FIRST_CHAR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,150,86,132,10
-    CONTROL         "Gõ nhanh",IDC_CHECK_QUICK_TYPING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,101,130,10
-    PUSHBUTTON      "Tùy chỉnh",IDC_BUTTON_QUICK_TYPING,190,99,92,14
+    CONTROL         "Gõ nhanh",IDC_CHECK_QUICK_TYPING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,101,100,10
 
     LTEXT           "Chính tả",IDC_HEADING_SPELLING,7,127,100,10
     GROUPBOX        "",IDC_STATIC,7,140,283,50
@@ -55,7 +55,7 @@ BEGIN
     GROUPBOX        "",IDC_STATIC,7,211,283,36
     CONTROL         "Khởi động cùng Windows",IDC_CHECK_RUN_WITH_WINDOWS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,217,130,10
     CONTROL         "Biểu tượng khay Win 10",IDC_CHECK_GRAY_ICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,150,217,132,10
-    CONTROL         "Chạy quyền Admin\tđể gõ được trong ứng dụng chạy quyền cao",IDC_CHECK_RUN_AS_ADMIN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,231,267,10
+    CONTROL         "Chạy quyền Admin",IDC_CHECK_RUN_AS_ADMIN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,231,267,10
 
     LTEXT           "Nâng cao",IDC_HEADING_ADVANCED,7,257,100,10
     GROUPBOX        "",IDC_CARD_ADVANCED,7,270,283,50
@@ -63,9 +63,10 @@ BEGIN
     CONTROL         "Dùng cách riêng cho Chrome, Edge, Brave",IDC_CHECK_FIX_CHROMIUM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,27,290,255,10
     CONTROL         "Gửi chữ bằng Clipboard\tchậm hơn, dùng khi cách thường lỗi",IDC_CHECK_SEND_BY_CLIPBOARD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,304,267,10
 
-    PUSHBUTTON      "Cài đặt gốc",IDC_BUTTON_DEFAULT,7,257,70,14
-    PUSHBUTTON      "Nâng cao",IDC_BUTTON_ADVANCED,164,257,70,14
-    DEFPUSHBUTTON   "Đóng",IDC_BUTTON_OK,240,257,50,14
+    PUSHBUTTON      "Cài đặt gốc",IDC_BUTTON_DEFAULT,7,257,60,14
+    PUSHBUTTON      "Nâng cao",IDC_BUTTON_ADVANCED,98,257,60,14
+    PUSHBUTTON      "Tắt",IDC_BUTTON_QUIT,164,257,60,14
+    DEFPUSHBUTTON   "Đóng",IDC_BUTTON_OK,230,257,60,14
 END
 
 IDD_DIALOG_APP_RULES DIALOGEX 0, 0, 260, 190

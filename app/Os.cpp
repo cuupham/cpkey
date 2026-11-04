@@ -1,9 +1,15 @@
 #include "Os.h"
 
 #define RUN_ON_STARTUP_KEY_PATH _T("Software\\Microsoft\\Windows\\CurrentVersion\\Run")
-#define EXE_PATH_SIZE           1024
-#define INI_SECTION_MAX_SIZE    32767 // the API limit
-#define UNKNOWN_PROGRAM         "UnknownProgram"
+// Task Manager's Startup tab keeps its enabled/disabled flag here.
+#define STARTUP_APPROVED_KEY_PATH _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\Run")
+#define EXE_PATH_SIZE             1024
+#define INI_SECTION_MAX_SIZE      32767 // the API limit
+#define UNKNOWN_PROGRAM           "UnknownProgram"
+
+#define TASK_QUERY_COMMAND  _T("schtasks /query /tn ") APP_NAME
+#define TASK_DELETE_COMMAND _T("schtasks /delete /tn ") APP_NAME _T(" /f")
+#define TASK_CREATE_COMMAND _T("schtasks /create /sc onlogon /tn ") APP_NAME _T(" /rl highest /f /tr ")
 
 static string lastExecutable = APP_NAME_TEXT;
 static DWORD lastProcessId = 0;
@@ -70,28 +76,52 @@ void Os::writeSection(LPCTSTR section, const vector<pair<wstring, wstring>>& ent
 	}
 }
 
-static void deleteStartupValue() {
-	HKEY key;
-	RegOpenKeyEx(HKEY_CURRENT_USER, RUN_ON_STARTUP_KEY_PATH, 0, KEY_ALL_ACCESS, &key);
-	RegDeleteValue(key, APP_NAME);
-	RegCloseKey(key);
+// Returns the exit code, or -1 when the process cannot start. Without `wait` the child outlives this process.
+static int runHidden(wstring commandLine, bool wait) {
+	STARTUPINFO startup = { sizeof(startup) };
+	PROCESS_INFORMATION process;
+	if (!CreateProcess(NULL, &commandLine[0], NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &startup, &process)) {
+		return -1;
+	}
+	DWORD exitCode = 0;
+	if (wait) {
+		WaitForSingleObject(process.hProcess, INFINITE);
+		GetExitCodeProcess(process.hProcess, &exitCode);
+	}
+	CloseHandle(process.hThread);
+	CloseHandle(process.hProcess);
+	return (int)exitCode;
 }
 
+// Quoted so a folder name with spaces still launches.
+static wstring quotedPath(const wstring& path) {
+	return L"\"" + path + L"\"";
+}
+
+// The Run key (normal mode) or the scheduled task (Admin mode) is the only record of autostart.
+bool Os::isRunOnStartupRegistered() {
+	TCHAR value[EXE_PATH_SIZE];
+	DWORD size = sizeof(value);
+	bool runKeyIsThisExe = RegGetValue(HKEY_CURRENT_USER, RUN_ON_STARTUP_KEY_PATH, APP_NAME, RRF_RT_REG_SZ, NULL, value, &size) == ERROR_SUCCESS &&
+	                       wcsicmp(value, quotedPath(getFullPath()).c_str()) == 0;
+	return runKeyIsThisExe || runHidden(TASK_QUERY_COMMAND, true) == 0;
+}
+
+// Replaces whichever mechanism is registered with the one the current mode needs.
 void Os::registerRunOnStartup(const int& val) {
+	vRunWithWindows = val != 0;
+	RegDeleteKeyValue(HKEY_CURRENT_USER, RUN_ON_STARTUP_KEY_PATH, APP_NAME);
 	if (!val) {
-		deleteStartupValue();
-		WinExec("schtasks /delete /tn " APP_NAME_TEXT " /f", SW_HIDE);
-	} else if (vRunAsAdmin) {
-		string path = toUtf8(getFullPath());
-		char buff[MAX_PATH + 100];
-		sprintf(buff, "schtasks /create /sc onlogon /tn %s /rl highest /tr \"%s\" /f", APP_NAME_TEXT, path.c_str());
-		WinExec(buff, SW_HIDE);
-	} else {
-		HKEY key;
-		RegOpenKeyEx(HKEY_CURRENT_USER, RUN_ON_STARTUP_KEY_PATH, 0, KEY_ALL_ACCESS, &key);
-		wstring path = L"\"" + getFullPath() + L"\""; // quoted so a folder name with spaces still launches
-		RegSetValueEx(key, APP_NAME, 0, REG_SZ, (LPBYTE)path.c_str(), ((DWORD)path.size() + 1) * sizeof(TCHAR));
-		RegCloseKey(key);
+		RegDeleteKeyValue(HKEY_CURRENT_USER, STARTUP_APPROVED_KEY_PATH, APP_NAME);
+	}
+	if (val && vRunAsAdmin) {
+		runHidden(TASK_CREATE_COMMAND + quotedPath(getFullPath()), false);
+		return;
+	}
+	runHidden(TASK_DELETE_COMMAND, false);
+	if (val) {
+		wstring path = quotedPath(getFullPath());
+		RegSetKeyValue(HKEY_CURRENT_USER, RUN_ON_STARTUP_KEY_PATH, APP_NAME, REG_SZ, path.c_str(), ((DWORD)path.size() + 1) * sizeof(TCHAR));
 	}
 }
 

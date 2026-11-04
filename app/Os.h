@@ -9,6 +9,7 @@ class Os {
 	static vector<pair<wstring, wstring>> readSection(LPCTSTR section);
 	static void writeSection(LPCTSTR section, const vector<pair<wstring, wstring>>& entries);
 
+	static bool isRunOnStartupRegistered();
 	static void registerRunOnStartup(const int& val);
 
 	static const string& getForegroundExecutableName();

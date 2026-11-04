@@ -216,8 +216,9 @@ void keyHookInit() {
 	PERSISTED_SETTINGS(LOAD_SETTING)
 	APP_GET_DATA(vLanguage, LANGUAGE_VIETNAMESE);
 	baseLanguage = vLanguage;
+	vRunWithWindows = Os::isRunOnStartupRegistered();
 	if (vRunWithWindows) {
-		Os::registerRunOnStartup(true); // refreshes the path if the exe was moved
+		Os::registerRunOnStartup(true); // moves the entry to the current mode, e.g. after switching to Admin
 	}
 
 	engineState = (vKeyHookState*)vKeyInit();
